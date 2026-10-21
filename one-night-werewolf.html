@@ -1,0 +1,878 @@
+<title>One Night Ultimate Werewolf</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* Committed look: a moonlit forest at midnight, played on one shared screen.
+   Palette: deep indigo night, charcoal shadow, pale moon, silver, blood-red wolf, forest-teal village, amber tanner. */
+:root{
+  --night:#0c1030; --night-2:#141a44; --night-3:#1c234f; --charcoal:#080a1c;
+  --panel:#171d44; --panel-2:#1e2552; --panel-edge:#343c78;
+  --ink:#e9ebff; --ink-soft:#a7afdc; --ink-dim:#7c85b8;
+  --moon:#f3f1e2; --moon-glow:#d9deff; --silver:#b9c0ec;
+  --wolf:#c6475c; --wolf-deep:#8c2a3c; --wolf-dark:#43141f;
+  --village:#4fb196; --village-deep:#2c7a64; --village-dark:#123d33;
+  --amber:#e0ac45; --amber-deep:#a97c1f;
+  --gold:#e8c66b;
+  color-scheme:dark;
+  --display:"Cinzel","Times New Roman",serif;
+  --body:"Spectral",Georgia,serif;
+  --util:"Spectral SC","Oswald",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;color:var(--ink);font-family:var(--body);line-height:1.5;-webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(70% 42% at 78% 10%,rgba(217,222,255,.16) 0%,rgba(217,222,255,.05) 34%,transparent 60%),
+    radial-gradient(130% 90% at 50% 0%,var(--night-2) 0%,var(--night) 46%,var(--charcoal) 100%) fixed;}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.55;
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 18%,#fff,transparent),
+    radial-gradient(1.2px 1.2px at 28% 40%,#dfe3ff,transparent),
+    radial-gradient(1px 1px at 46% 12%,#fff,transparent),
+    radial-gradient(1.3px 1.3px at 64% 28%,#cfd6ff,transparent),
+    radial-gradient(1px 1px at 82% 44%,#fff,transparent),
+    radial-gradient(1.2px 1.2px at 92% 20%,#e7eaff,transparent),
+    radial-gradient(1px 1px at 20% 64%,#fff,transparent),
+    radial-gradient(1.1px 1.1px at 54% 72%,#dfe3ff,transparent),
+    radial-gradient(1px 1px at 74% 82%,#fff,transparent),
+    radial-gradient(1.2px 1.2px at 36% 88%,#cfd6ff,transparent);}
+h1,h2,h3,.disp{font-family:var(--display);font-weight:600;letter-spacing:.03em;text-wrap:balance;}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:18px;padding-block:22px;}
+.eyebrow{font-family:var(--util);text-transform:uppercase;letter-spacing:.22em;font-size:11px;color:var(--silver);font-weight:600;}
+button{font-family:var(--display);letter-spacing:.04em;cursor:pointer;border:none;border-radius:4px;}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+.btn{background:var(--village-deep);color:var(--moon);padding:11px 20px;font-size:16px;text-transform:uppercase;border:1px solid rgba(255,255,255,.14);box-shadow:0 2px 0 rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12);transition:transform .08s,box-shadow .08s,filter .08s;}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.08);}
+.btn:active{transform:translateY(1px);}
+.btn.wolf{background:var(--wolf-deep);}
+.btn.gold{background:linear-gradient(180deg,var(--amber),var(--amber-deep));color:#2a1e06;}
+.btn.ghost{background:rgba(255,255,255,.04);color:var(--ink);border:1px solid var(--panel-edge);box-shadow:none;}
+.btn.ink{background:var(--night-3);color:var(--ink);border:1px solid var(--panel-edge);}
+.btn.sm{padding:7px 13px;font-size:13px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;filter:none;}
+input[type=text]{background:rgba(8,10,28,.6);color:var(--ink);border:1px solid var(--panel-edge);border-radius:4px;padding:9px 11px;font-family:var(--body);font-size:15px;width:100%;}
+input[type=text]::placeholder{color:var(--ink-dim);}
+.muted{color:var(--ink-soft);}
+.dim{color:var(--ink-dim);}
+.hidden{display:none!important;}
+
+.masthead{position:relative;text-align:center;padding:30px 16px 24px;margin-bottom:22px;overflow:hidden;border:1px solid var(--panel-edge);border-radius:10px;
+  background:radial-gradient(90% 120% at 50% -10%,rgba(217,222,255,.18),transparent 55%),linear-gradient(180deg,var(--night-3),var(--night));box-shadow:0 10px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08);}
+.masthead .moon{position:absolute;top:14px;right:22px;width:70px;height:70px;border-radius:50%;
+  background:radial-gradient(circle at 38% 34%,#fbfaf0,#e3e6d2 58%,#c7ccba 100%);
+  box-shadow:0 0 34px 8px rgba(233,236,210,.4),inset -10px -8px 0 rgba(120,126,150,.28);opacity:.95;}
+.masthead .sub{font-family:var(--util);font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--silver);}
+.masthead h1{font-size:clamp(30px,7.2vw,58px);margin:8px 0 4px;line-height:1;letter-spacing:.06em;text-transform:uppercase;color:var(--moon);text-shadow:0 0 22px rgba(217,222,255,.3);}
+.masthead h1 .wk{color:var(--wolf);}
+.rule{height:1px;background:linear-gradient(90deg,transparent,var(--panel-edge),transparent);max-width:320px;margin:12px auto;}
+
+.panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--panel-edge);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.4);padding:20px;}
+.names-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:14px 0;}
+.name-row{display:flex;gap:8px;align-items:center;}
+.name-row .idx{font-family:var(--util);color:var(--silver);width:22px;text-align:right;font-size:15px;font-weight:600;}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.spread{justify-content:space-between;}
+.count-pills{display:flex;gap:7px;flex-wrap:wrap;}
+.count-pills button{background:rgba(8,10,28,.5);color:var(--ink);border:1px solid var(--panel-edge);padding:8px 14px;font-size:16px;border-radius:6px;}
+.count-pills button[aria-pressed=true]{background:var(--wolf-deep);border-color:var(--wolf);box-shadow:0 0 0 1px var(--wolf) inset;}
+
+/* role picker */
+.rolewrap{margin:14px 0;border:1px solid var(--panel-edge);border-radius:8px;overflow:hidden;}
+.rolewrap .rh{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;background:rgba(8,10,28,.4);border-bottom:1px solid var(--panel-edge);}
+.needcount{font-family:var(--util);font-size:13px;letter-spacing:.08em;text-transform:uppercase;}
+.needcount b{font-family:var(--display);font-size:20px;}
+.needcount.ok b{color:var(--village);}
+.needcount.bad b{color:var(--wolf);}
+.role-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:9px;padding:12px 14px;}
+.role-ctl{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--panel-edge);border-radius:7px;background:rgba(8,10,28,.3);}
+.role-ctl.on{border-color:var(--village-deep);background:rgba(44,122,100,.14);}
+.role-ctl.wolfrole.on{border-color:var(--wolf-deep);background:rgba(140,42,60,.16);}
+.role-ctl.tannerrole.on{border-color:var(--amber-deep);background:rgba(169,124,31,.14);}
+.role-ctl .ic{width:30px;height:30px;flex:none;color:var(--silver);}
+.role-ctl .meta{flex:1;min-width:0;}
+.role-ctl .rn{font-family:var(--display);font-size:16px;line-height:1;}
+.role-ctl .rt{font-family:var(--util);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);}
+.stepper{display:flex;align-items:center;gap:6px;flex:none;}
+.stepper button{width:28px;height:28px;border-radius:6px;background:var(--night-3);color:var(--ink);border:1px solid var(--panel-edge);font-size:18px;line-height:1;padding:0;}
+.stepper .ct{font-family:var(--display);font-size:18px;min-width:18px;text-align:center;}
+
+.stage{min-height:52vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;}
+.reveal-card{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--panel-edge);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.5);padding:26px 22px;max-width:460px;width:100%;}
+.big-name{font-family:var(--display);font-size:26px;text-transform:uppercase;letter-spacing:.05em;}
+.progress-dots{display:flex;gap:7px;justify-content:center;margin-top:10px;flex-wrap:wrap;}
+.dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.14);border:1px solid var(--panel-edge);}
+.dot.done{background:var(--moon-glow);border-color:var(--silver);box-shadow:0 0 8px rgba(217,222,255,.5);}
+
+/* card reveal block */
+.cardshow{border-radius:12px;padding:20px 16px;margin:6px auto;max-width:360px;border:1px solid var(--panel-edge);
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.2));}
+.cardshow.team-werewolf{border-color:var(--wolf-deep);background:linear-gradient(180deg,rgba(140,42,60,.28),rgba(67,20,31,.4));}
+.cardshow.team-village{border-color:var(--village-deep);background:linear-gradient(180deg,rgba(44,122,100,.24),rgba(18,61,51,.4));}
+.cardshow.team-tanner{border-color:var(--amber-deep);background:linear-gradient(180deg,rgba(169,124,31,.24),rgba(60,42,8,.4));}
+.cardshow .cs-ic{width:62px;height:62px;margin:0 auto 8px;color:var(--moon);}
+.cardshow .cs-name{font-family:var(--display);font-size:30px;text-transform:uppercase;letter-spacing:.04em;line-height:1;}
+.cardshow .cs-team{font-family:var(--util);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-top:5px;color:var(--silver);}
+.cardshow .cs-cap{margin-top:10px;font-size:14px;color:var(--ink-soft);}
+
+/* game header */
+.gbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.toolbar{display:flex;gap:7px;flex-wrap:wrap;}
+.phase-chip{font-family:var(--util);text-transform:uppercase;letter-spacing:.16em;font-size:11px;color:var(--night);background:var(--silver);padding:5px 12px;border-radius:20px;font-weight:700;}
+
+.action{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--panel-edge);border-radius:12px;box-shadow:0 10px 36px rgba(0,0,0,.45);padding:20px 20px 22px;margin:10px 0 16px;}
+.action h2{margin:4px 0 2px;font-size:26px;text-transform:uppercase;letter-spacing:.03em;}
+.action .lead{font-family:var(--util);text-transform:uppercase;letter-spacing:.16em;font-size:12px;color:var(--silver);}
+.reminder{border-left:3px solid var(--gold);background:rgba(232,198,107,.1);padding:11px 14px;margin:14px 0;font-size:14px;border-radius:0 6px 6px 0;}
+.reminder b{color:var(--gold);}
+.actbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+
+/* pick grids */
+.pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:9px;margin:14px 0;}
+.pcard{position:relative;border:1px solid var(--panel-edge);border-radius:9px;background:rgba(8,10,28,.4);padding:14px 8px;text-align:center;font-family:var(--display);font-size:16px;cursor:pointer;transition:transform .08s,border-color .08s,background .08s;}
+.pcard:hover{transform:translateY(-2px);border-color:var(--gold);background:rgba(232,198,107,.1);}
+.pcard.sel{border-color:var(--gold);background:rgba(232,198,107,.18);box-shadow:0 0 0 1px var(--gold) inset;}
+.pcard.disabled{opacity:.35;cursor:not-allowed;}
+.pcard.disabled:hover{transform:none;border-color:var(--panel-edge);background:rgba(8,10,28,.4);}
+.pcard .cidx{font-family:var(--util);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);display:block;margin-top:3px;}
+.center-card{border-style:dashed;}
+.center-card .cback{width:34px;height:46px;margin:0 auto 6px;border-radius:5px;border:1px solid var(--panel-edge);background:repeating-linear-gradient(135deg,rgba(185,192,236,.16) 0 5px,transparent 5px 10px),rgba(8,10,28,.6);display:flex;align-items:center;justify-content:center;color:var(--silver);}
+.center-card .cback svg{width:20px;height:20px;}
+
+/* table strip */
+.table-strip{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0;}
+.seat{font-family:var(--util);font-size:13px;padding:8px 12px;border:1px solid var(--panel-edge);border-radius:7px;background:rgba(8,10,28,.4);min-width:70px;text-align:center;}
+.seat.dead{opacity:.45;}.seat.dead .nm{text-decoration:line-through;}
+.seat .nm{font-weight:600;letter-spacing:.02em;}
+
+/* vote */
+.vote-grid{display:grid;grid-template-columns:1fr;gap:10px;margin:14px 0;}
+.voter{border:1px solid var(--panel-edge);border-radius:9px;background:rgba(8,10,28,.35);padding:10px 12px;}
+.voter .vn{font-family:var(--display);font-size:17px;margin-bottom:7px;}
+.voter .vopts{display:flex;gap:6px;flex-wrap:wrap;}
+.voter .vopts button{font-family:var(--util);font-size:13px;padding:6px 11px;border-radius:14px;background:var(--night-3);color:var(--ink);border:1px solid var(--panel-edge);}
+.voter .vopts button[aria-pressed=true]{background:var(--wolf-deep);border-color:var(--wolf);color:var(--moon);}
+.tally{font-family:var(--display);font-size:18px;text-transform:uppercase;margin-top:8px;letter-spacing:.03em;}
+
+/* result */
+.resultbanner{text-align:center;border-radius:12px;padding:20px;margin:6px 0 16px;border:1px solid var(--panel-edge);}
+.resultbanner.village{background:linear-gradient(180deg,rgba(44,122,100,.3),rgba(18,61,51,.5));border-color:var(--village);}
+.resultbanner.werewolf{background:linear-gradient(180deg,rgba(140,42,60,.32),rgba(67,20,31,.5));border-color:var(--wolf);}
+.resultbanner.tanner{background:linear-gradient(180deg,rgba(169,124,31,.3),rgba(60,42,8,.5));border-color:var(--amber);}
+.resultbanner.none{background:rgba(8,10,28,.5);}
+.resultbanner .rb-win{font-family:var(--display);font-size:32px;text-transform:uppercase;letter-spacing:.04em;line-height:1.05;}
+.resultbanner .rb-sub{color:var(--ink-soft);margin-top:8px;font-size:15px;}
+.rolemap{border:1px solid var(--panel-edge);border-radius:9px;overflow:hidden;margin:6px 0 14px;}
+.rolemap .rr{display:grid;grid-template-columns:1.1fr auto 1fr auto;gap:8px;align-items:center;padding:9px 12px;border-top:1px solid rgba(52,60,120,.5);font-size:14px;}
+.rolemap .rr:first-child{border-top:none;}
+.rolemap .rr .who{font-family:var(--display);font-size:16px;}
+.rolemap .rr .who.dead{text-decoration:line-through;color:var(--ink-dim);}
+.rolemap .rr .arrow{color:var(--ink-dim);font-size:13px;}
+.rolemap .rr .rolepill{font-family:var(--util);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:12px;white-space:nowrap;}
+.rolepill.werewolf{background:rgba(140,42,60,.4);color:#f3c4cd;}
+.rolepill.village{background:rgba(44,122,100,.4);color:#c3ecdf;}
+.rolepill.tanner{background:rgba(169,124,31,.4);color:#f2dca6;}
+.rolemap .rr .outcome{font-family:var(--util);font-size:10px;letter-spacing:.08em;text-transform:uppercase;text-align:right;}
+.outcome.won{color:var(--gold);}.outcome.lost{color:var(--ink-dim);}
+.rolemap .center-head{padding:8px 12px;font-family:var(--util);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);background:rgba(8,10,28,.4);border-top:1px solid var(--panel-edge);}
+
+/* timer */
+.timerbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:rgba(8,10,28,.4);border:1px solid var(--panel-edge);border-radius:9px;padding:10px 14px;margin:0 0 14px;}
+.timerbar .tlabel{font-family:var(--util);text-transform:uppercase;letter-spacing:.14em;font-size:11px;color:var(--silver);font-weight:600;}
+.timerbar .tdisp{font-family:var(--display);font-size:28px;font-variant-numeric:tabular-nums;min-width:74px;}
+.timerbar.low .tdisp{color:var(--amber);}
+.timerbar.done{border-color:var(--wolf);}
+.timerbar.done .tdisp{color:var(--wolf);}
+
+/* log */
+.logwrap{border:1px solid var(--panel-edge);border-radius:9px;margin:0 0 16px;overflow:hidden;}
+.logwrap .lh{font-family:var(--util);text-transform:uppercase;letter-spacing:.14em;font-size:11px;color:var(--silver);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--panel-edge);display:flex;justify-content:space-between;align-items:center;background:rgba(8,10,28,.4);}
+.loglist{max-height:200px;overflow:auto;padding:4px 0;}
+.logrow{padding:6px 14px;font-size:13px;border-left:3px solid var(--panel-edge);}
+.logrow.death{border-color:var(--wolf);}
+.logrow.win{border-color:var(--gold);background:rgba(232,198,107,.1);font-weight:600;}
+.logrow.vote{border-color:var(--village-deep);}
+.logempty{padding:12px 14px;color:var(--ink-dim);font-size:13px;}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(4,6,18,.78);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50;overflow:auto;}
+.modal{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--panel-edge);border-radius:12px;max-width:560px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.6);overflow:hidden;margin:auto;}
+.modal .mhead{padding:18px 22px;border-bottom:1px solid var(--panel-edge);position:relative;background:radial-gradient(90% 140% at 80% -20%,rgba(217,222,255,.14),transparent 55%);}
+.modal .mhead h2{margin:0;font-size:24px;text-transform:uppercase;letter-spacing:.03em;}
+.modal .mhead .ek{font-family:var(--util);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--silver);}
+.modal .mbody{padding:20px 22px;max-height:64vh;overflow:auto;}
+.modal .mbody p{margin:0 0 12px;}
+.loop{display:grid;gap:10px;margin:4px 0;}
+.loopstep{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--panel-edge);border-radius:8px;padding:10px 12px;background:rgba(8,10,28,.3);}
+.loopstep .ln{font-family:var(--display);font-weight:700;font-size:22px;color:var(--silver);line-height:1;width:26px;flex:none;}
+.loopstep .lt b{font-family:var(--display);text-transform:none;}
+.ref-role{display:flex;gap:12px;align-items:flex-start;border-top:1px solid rgba(52,60,120,.5);padding:11px 0;}
+.ref-role:first-child{border-top:none;}
+.ref-role .ri{width:40px;height:40px;flex:none;color:var(--silver);}
+.ref-role .rtitle{font-family:var(--display);font-size:17px;}
+.ref-role .rtitle .tg{font-family:var(--util);font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-left:6px;padding:2px 7px;border-radius:10px;vertical-align:middle;}
+.tg.werewolf{background:rgba(140,42,60,.4);color:#f3c4cd;}
+.tg.village{background:rgba(44,122,100,.4);color:#c3ecdf;}
+.tg.tanner{background:rgba(169,124,31,.4);color:#f2dca6;}
+.modal .mfoot{padding:14px 22px 20px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+details{border:1px solid var(--panel-edge);border-radius:8px;background:rgba(8,10,28,.3);padding:10px 14px;margin-top:12px;}
+summary{cursor:pointer;font-family:var(--display);letter-spacing:.03em;}
+details p,details li{font-size:14px;}
+.footer-note{color:var(--ink-dim);font-size:12px;text-align:center;margin-top:24px;font-family:var(--util);letter-spacing:.1em;text-transform:uppercase;}
+@media(max-width:560px){.action h2{font-size:21px;}.cardshow .cs-name{font-size:25px;}.rolemap .rr{grid-template-columns:1fr auto 1fr;}.rolemap .rr .outcome{grid-column:1/-1;text-align:left;}}
+</style>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="moon" aria-hidden="true"></div>
+    <div class="sub">A hidden-role night game · 3 to 10 players</div>
+    <h1>One Night <span class="wk">Werewolf</span></h1>
+    <div class="rule"></div>
+    <div class="sub">One shared screen is the narrator · no phones</div>
+  </div>
+
+  <!-- SETUP -->
+  <section id="setup">
+    <div class="panel">
+      <div class="eyebrow">Step 1 — Who is playing? (seat them in this order)</div>
+      <div class="row spread" style="margin-top:8px">
+        <div class="count-pills" id="countPills"></div>
+        <button class="btn ghost sm" id="clearNames">Clear names</button>
+      </div>
+      <div class="names-grid" id="namesGrid"></div>
+
+      <div class="eyebrow" style="margin-top:6px">Step 2 — Choose the roles (players + 3 cards)</div>
+      <div class="rolewrap">
+        <div class="rh">
+          <div class="needcount" id="needCount"></div>
+          <div class="row">
+            <button class="btn ghost sm" id="suggestBtn">Suggested set</button>
+            <button class="btn ghost sm" id="rolesHelpBtn">Role list</button>
+          </div>
+        </div>
+        <div class="role-list" id="roleList"></div>
+      </div>
+
+      <div class="row" style="margin-top:4px">
+        <button class="btn gold" id="dealBtn">Deal the cards →</button>
+        <button class="btn ghost sm" id="howBtn">How it works</button>
+      </div>
+      <div class="muted" id="setupHint" style="margin-top:8px;font-size:13px"></div>
+    </div>
+  </section>
+
+  <!-- REVEAL dealt card -->
+  <section id="reveal" class="hidden">
+    <div class="stage">
+      <div id="revealGate">
+        <div class="eyebrow">Step 3 — Everyone secretly looks at their card</div>
+        <h2 style="font-size:26px;margin:10px 0">Pass the laptop around the table</h2>
+        <p class="muted" style="max-width:440px;margin-inline:auto">Each player taps their own name, sees the card they were dealt, hides it, and passes on. Remember it — cards may move during the night.</p>
+        <div class="progress-dots" id="revealDots"></div>
+        <div id="revealButtons" class="names-grid" style="margin-top:18px"></div>
+        <button class="btn gold hidden" id="toNightBtn" style="margin-top:14px">Everyone has seen their card — begin the night →</button>
+      </div>
+      <div id="revealOne" class="reveal-card hidden">
+        <div class="eyebrow" id="roPrompt">Make sure nobody else is looking</div>
+        <div class="big-name" id="roName" style="margin:8px 0"></div>
+        <div id="roReveal" class="hidden"></div>
+        <div style="margin-top:18px" class="row" id="roBtns" style="justify-content:center"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME: night / day / vote / result -->
+  <section id="game" class="hidden">
+    <div class="gbar">
+      <span class="phase-chip" id="phaseChip">Night</span>
+      <div class="toolbar">
+        <button class="btn ghost sm" id="howBtn2">How to play</button>
+        <button class="btn ghost sm" id="rolesBtn">Roles in play</button>
+        <button class="btn ghost sm" id="orderBtn">Night order</button>
+      </div>
+    </div>
+
+    <div class="timerbar hidden" id="timerBar">
+      <span class="tlabel">Discussion</span>
+      <span class="tdisp" id="timerDisplay">5:00</span>
+      <button class="btn gold sm" id="tStart">Start</button>
+      <button class="btn ghost sm" id="tAdd">+30s</button>
+      <button class="btn ghost sm" id="tReset">Reset</button>
+      <span class="count-pills" id="timerPresets"></span>
+    </div>
+
+    <div class="action" id="actionPanel"></div>
+
+    <div class="logwrap">
+      <div class="lh"><span>Public record</span><span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">no secret actions shown</span></div>
+      <div class="loglist" id="gameLog"></div>
+    </div>
+
+    <div class="row">
+      <button class="btn ghost sm" id="undoBtn">Undo</button>
+      <button class="btn ghost sm" id="newGame">New game</button>
+    </div>
+  </section>
+
+  <div class="footer-note">Fan-made digital narrator · for your own game nights</div>
+</div>
+<div id="modalMount"></div>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Spectral+SC:wght@500;600&display=swap">
+
+<script>
+"use strict";
+/* ===================== ICONS ===================== */
+const ICON={
+  moon:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 2.2A9.8 9.8 0 1 0 21.8 14 7.8 7.8 0 0 1 15.5 2.2z"/></svg>',
+  wolf:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3l2.5 3.2L5 8.3c-.6 2.2-.4 4 .9 6.2 1 1.8 2.9 3.4 6.1 4.8 3.2-1.4 5.1-3 6.1-4.8 1.3-2.2 1.5-4 .9-6.2l-1.5-2.1L20 3l-3.4 2.3c-1.4-.5-3-.8-4.6-.8s-3.2.3-4.6.8L4 3zm5.2 7.2a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zm5.6 0a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM12 14.3l1.6 1.1-1.6 1-1.6-1 1.6-1.1z"/></svg>',
+  minion:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5.5 5l1.8 2.3C6.5 8.6 6.2 10 6.6 11.7c.4 1.7 1.8 3.3 5.4 4.8 3.6-1.5 5-3.1 5.4-4.8.4-1.7.1-3.1-.7-4.4L18.5 5l-2.7 1.6c-1.1-.4-2.4-.6-3.8-.6s-2.7.2-3.8.6L5.5 5zm3.9 5a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8zm5.2 0a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8zM12 18c-1.6 0-3 .5-4 1.4.3 1 2 1.6 4 1.6s3.7-.6 4-1.6c-1-.9-2.4-1.4-4-1.4z"/></svg>',
+  mason:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="6" r="2.4"/><circle cx="16" cy="6" r="2.4"/><path d="M3.5 19v-2.5a4.5 4.5 0 0 1 4.5-4.5 4.4 4.4 0 0 1 3 1.2"/><path d="M20.5 19v-2.5a4.5 4.5 0 0 0-4.5-4.5 4.4 4.4 0 0 0-3 1.2"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3.1" fill="currentColor" stroke="none"/><circle cx="13.1" cy="10.9" r=".9" fill="#0c1030" stroke="none"/></svg>',
+  mask:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 7c3-1.2 6-1.2 9-1.2S18 6.8 21 8c.2 3-1 5.6-3.4 6.8-1.2.6-2.4.2-3.1-.6-.6-.7-1-1.6-1.5-1.6s-.9.9-1.5 1.6c-.7.8-1.9 1.2-3.1.6C5.9 13.2 4.7 10.6 4.9 7.6 4.3 7.3 3.6 7.1 3 7zm5 2.4a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6zm8 0a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/></svg>',
+  swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h12l-3-3m3 3-3 3"/><path d="M20 16H8l3-3m-3 3 3 3"/></svg>',
+  bottle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3h4M11 3v4.2c0 .6-.2 1.1-.6 1.6L9 10.5c-.6.7-1 1.6-1 2.6V19a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-5.9c0-1-.4-1.9-1-2.6l-1.4-1.7c-.4-.5-.6-1-.6-1.6V3"/><path d="M8 14.5h8"/></svg>',
+  moonz:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.8 3.4A8.4 8.4 0 1 0 20.6 14 6.7 6.7 0 0 1 13.8 3.4z"/><path d="M15.5 3h4l-4 4h4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  noose:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4"/><ellipse cx="12" cy="12.5" rx="4" ry="5"/><path d="M10.6 17.2 10 21M13.4 17.2 14 21"/></svg>',
+  bow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19C5 12 9 5 19 5"/><path d="M5 19 19 5M5 19l4 .3M5 19l.3 4"/><path d="M19 5l-3 .3M19 5l-.3 3"/></svg>',
+  villager:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3.2"/><path d="M5.5 20v-1.5a6.5 6.5 0 0 1 13 0V20"/></svg>',
+  skull:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5C7.6 2.5 4.5 5.6 4.5 9.8c0 2 .9 3.6 2.2 4.8.4.4.6.9.6 1.4v.8c0 .8.6 1.4 1.4 1.4H8v1.2c0 .5.4.9.9.9s.9-.4.9-.9V18.2h.9v1.2c0 .5.4.9.9.9s.9-.4.9-.9V18.2h.9v1.2c0 .5.4.9.9.9s.9-.4.9-.9V18.2h.3c.8 0 1.4-.6 1.4-1.4V16c0-.5.2-1 .6-1.4 1.3-1.2 2.2-2.8 2.2-4.8 0-4.2-3.1-7.3-7.5-7.3zM9 9.5a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2zm6 0a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2zM12 13.6l1 2h-2z"/></svg>',
+  cards:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="6" width="11" height="14" rx="1.5"/><path d="M8.5 4.8 18 6.8c.8.2 1.3.9 1.1 1.7L17 18"/></svg>',
+  trophy:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h12v3a4 4 0 0 1-3 3.9V13a3 3 0 0 0 3 3h.5V18H5.5v-2H6a3 3 0 0 0 3-3v-2.1A4 4 0 0 1 6 7V4zM4 5h2v2a2 2 0 0 1-2-2zm16 0a2 2 0 0 1-2 2V5h2zM8 20h8v1.5H8z"/></svg>',
+};
+
+/* ===================== ROLE DATA ===================== */
+const ROLES={
+  werewolf:{label:'Werewolf',team:'werewolf',icon:'wolf',max:2,
+    night:'Wake with the other Werewolves and see who they are. If you are the only Werewolf, you may look at one center card.',
+    team_note:'Werewolf team. You win if no Werewolf is killed.'},
+  minion:{label:'Minion',team:'werewolf',icon:'minion',max:1,
+    night:'See who the Werewolves are. They do not see you.',
+    team_note:'Werewolf team. You win if no Werewolf is killed — even if you are the one who dies.'},
+  mason:{label:'Mason',team:'village',icon:'mason',max:2,step:2,
+    night:'Wake and see the other Mason. If you are alone, the other Mason card is in the center.',
+    team_note:'Village team.'},
+  seer:{label:'Seer',team:'village',icon:'eye',max:1,
+    night:"Look at one other player's card, OR two of the three center cards.",
+    team_note:'Village team.'},
+  robber:{label:'Robber',team:'village',icon:'mask',max:1,
+    night:"You may swap your card with another player's, then look at your new card. You are now that role.",
+    team_note:'Village team — unless you rob your way onto another team.'},
+  troublemaker:{label:'Troublemaker',team:'village',icon:'swap',max:1,
+    night:"Swap two other players' cards with each other, without looking.",
+    team_note:'Village team.'},
+  drunk:{label:'Drunk',team:'village',icon:'bottle',max:1,
+    night:'Swap your card with a center card. You do not see your new role.',
+    team_note:'Village team — but you no longer know what you are.'},
+  insomniac:{label:'Insomniac',team:'village',icon:'moonz',max:1,
+    night:'At the very end of the night, look at your own card to see whether it changed.',
+    team_note:'Village team.'},
+  tanner:{label:'Tanner',team:'tanner',icon:'noose',max:1,
+    night:'No night action. Sleep.',
+    team_note:'On no team. You win only if YOU are killed.'},
+  hunter:{label:'Hunter',team:'village',icon:'bow',max:1,
+    night:'No night action. Sleep.',
+    team_note:'Village team. If you are killed, the player you voted for dies too.'},
+  villager:{label:'Villager',team:'village',icon:'villager',max:3,
+    night:'No night action. Sleep through the night.',
+    team_note:'Village team.'},
+};
+const WAKE_ORDER=['werewolf','minion','mason','seer','robber','troublemaker','drunk','insomniac'];
+const ROLE_KEYS=['werewolf','minion','mason','seer','robber','troublemaker','villager','insomniac','drunk','tanner','hunter'];
+function teamLabel(t){return t==='werewolf'?'Werewolf team':t==='village'?'Village team':'Tanner · own team';}
+
+/* ===================== STATE ===================== */
+let S=null;
+const el=id=>document.getElementById(id);
+let selCount=5;
+let counts={}; /* role -> count, during setup */
+
+function freshCounts(){const c={};ROLE_KEYS.forEach(r=>c[r]=0);return c;}
+function totalCards(c){return ROLE_KEYS.reduce((s,r)=>s+(c[r]||0),0);}
+
+function suggestedSet(n){
+  const need=n+3;const c=freshCounts();
+  c.werewolf=2;c.seer=1;c.robber=1;c.troublemaker=1; /* 5 */
+  let t=5;
+  while(t<need && c.villager<3){c.villager++;t++;}
+  for(const r of ['minion','insomniac','drunk','tanner','hunter']){if(t>=need)break;c[r]=1;t++;}
+  if(t+2<=need && c.mason===0){c.mason=2;t+=2;}
+  while(t<need && c.villager<3){c.villager++;t++;}
+  return c;
+}
+
+/* ===================== SETUP SCREEN ===================== */
+function renderCountPills(){const h=el('countPills');h.innerHTML='';for(let n=3;n<=10;n++){const b=document.createElement('button');b.textContent=n;b.setAttribute('aria-pressed',n===selCount);b.onclick=()=>{selCount=n;counts=suggestedSet(n);renderCountPills();renderNameInputs();renderRoleList();};h.appendChild(b);}}
+function renderNameInputs(){const g=el('namesGrid');const prev=[...g.querySelectorAll('input')].map(i=>i.value);g.innerHTML='';for(let i=0;i<selCount;i++){const row=document.createElement('div');row.className='name-row';row.innerHTML=`<span class="idx">${i+1}</span>`;const inp=document.createElement('input');inp.type='text';inp.placeholder='Player '+(i+1);inp.value=prev[i]||'';inp.id='nm'+i;inp.autocomplete='off';row.appendChild(inp);g.appendChild(row);}}
+function renderRoleList(){
+  const host=el('roleList');host.innerHTML='';
+  ROLE_KEYS.forEach(r=>{
+    const R=ROLES[r];const ct=counts[r]||0;
+    const d=document.createElement('div');
+    d.className='role-ctl'+(ct>0?' on':'')+(R.team==='werewolf'?' wolfrole':R.team==='tanner'?' tannerrole':'');
+    d.innerHTML=`<span class="ic">${ICON[R.icon]}</span>
+      <div class="meta"><div class="rn">${R.label}${R.max>1?' <span class="dim" style="font-size:12px">(max '+R.max+')</span>':''}</div><div class="rt">${teamLabel(R.team)}</div></div>`;
+    const st=document.createElement('div');st.className='stepper';
+    const step=R.step||1;
+    const minus=document.createElement('button');minus.textContent='−';minus.setAttribute('aria-label','remove '+R.label);minus.onclick=()=>{counts[r]=Math.max(0,ct-step);renderRoleList();};
+    const cnt=document.createElement('span');cnt.className='ct';cnt.textContent=ct;
+    const plus=document.createElement('button');plus.textContent='+';plus.setAttribute('aria-label','add '+R.label);plus.onclick=()=>{counts[r]=Math.min(R.max,ct+step);renderRoleList();};
+    st.appendChild(minus);st.appendChild(cnt);st.appendChild(plus);
+    d.appendChild(st);host.appendChild(d);
+  });
+  const need=selCount+3;const total=totalCards(counts);
+  const nc=el('needCount');nc.className='needcount '+(total===need?'ok':'bad');
+  nc.innerHTML=`Cards chosen <b>${total}</b> / need <b>${need}</b>`;
+  const hint=el('setupHint');
+  if(total!==need)hint.innerHTML=`You need exactly <b>${need}</b> cards (${selCount} players + 3 center). ${total<need?'Add '+(need-total)+' more.':'Remove '+(total-need)+'.'}`;
+  else if((counts.werewolf||0)===0)hint.innerHTML='No Werewolf cards chosen — the village will struggle to win. You can still deal, but a Werewolf is recommended.';
+  else hint.textContent='Ready to deal.';
+  el('dealBtn').disabled=total!==need;
+}
+function nameAt(i){const v=(el('nm'+i)?el('nm'+i).value:'').trim();return v||('Player '+(i+1));}
+
+el('clearNames').onclick=()=>document.querySelectorAll('#namesGrid input').forEach(i=>i.value='');
+el('suggestBtn').onclick=()=>{counts=suggestedSet(selCount);renderRoleList();};
+el('howBtn').onclick=()=>showHowModal(true);
+el('rolesHelpBtn').onclick=()=>showRolesModal(countsToPool(counts));
+
+function countsToPool(c){const pool=[];ROLE_KEYS.forEach(r=>{for(let k=0;k<(c[r]||0);k++)pool.push(r);});return pool;}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function dealRoles(){
+  const need=selCount+3;if(totalCards(counts)!==need)return;
+  const names=[];for(let i=0;i<selCount;i++)names.push(nameAt(i));
+  const pool=shuffle(countsToPool(counts));
+  S={
+    v:1,phase:'reveal',count:selCount,names,
+    counts:Object.assign({},counts),
+    dealt:pool.slice(),      /* frozen original, length n+3 */
+    cards:pool.slice(),      /* mutable current, length n+3 */
+    seen:names.map(()=>false),
+    queue:[],nightIdx:0,ns:'pass',sub:'',tmp:[],reveal:null,
+    votes:{},deaths:null,result:null,
+    log:[],history:[],
+  };
+  save();showPhase();
+}
+el('dealBtn').onclick=dealRoles;
+
+/* ===================== helpers ===================== */
+function playersWithDealt(role){const out=[];for(let i=0;i<S.count;i++)if(S.dealt[i]===role)out.push(i);return out;}
+function centerIdx(k){return S.count+k;} /* k = 0..2 */
+function logEvent(t,k){if(!S.log)S.log=[];S.log.push({t,k});}
+function pushHistory(){const c=Object.assign({},S);delete c.history;S.history=S.history||[];S.history.push(JSON.stringify(c));if(S.history.length>80)S.history.shift();}
+function cardBlock(role,cap){const R=ROLES[role];return `<div class="cardshow team-${R.team}"><div class="cs-ic">${ICON[R.icon]}</div><div class="cs-name">${R.label}</div><div class="cs-team">${teamLabel(R.team)}</div>${cap?`<div class="cs-cap">${cap}</div>`:''}</div>`;}
+
+/* ===================== REVEAL (dealt card) ===================== */
+function renderRevealGate(){
+  const d=el('revealDots');d.innerHTML='';S.seen.forEach(done=>{const x=document.createElement('div');x.className='dot'+(done?' done':'');d.appendChild(x);});
+  const b=el('revealButtons');b.innerHTML='';
+  S.names.forEach((nm,i)=>{const btn=document.createElement('button');btn.className='btn '+(S.seen[i]?'ghost':'');btn.textContent=(S.seen[i]?'✓ ':'')+nm;btn.disabled=S.seen[i];btn.onclick=()=>openReveal(i);b.appendChild(btn);});
+  el('toNightBtn').classList.toggle('hidden',!S.seen.every(Boolean));
+}
+function openReveal(i){el('revealGate').classList.add('hidden');const c=el('revealOne');c.classList.remove('hidden');el('roName').textContent=S.names[i];el('roPrompt').textContent='Make sure nobody else is looking';el('roReveal').classList.add('hidden');el('roReveal').innerHTML='';const btns=el('roBtns');btns.innerHTML='';const show=document.createElement('button');show.className='btn gold';show.textContent='Reveal my card';show.onclick=()=>doReveal(i);btns.appendChild(show);}
+function doReveal(i){
+  const r=S.dealt[i];const R=ROLES[r];
+  el('roPrompt').textContent='Your dealt card';
+  const rv=el('roReveal');rv.classList.remove('hidden');
+  rv.innerHTML=cardBlock(r,R.team_note);
+  const btns=el('roBtns');btns.innerHTML='';
+  const done=document.createElement('button');done.className='btn';done.textContent='Hide & pass on';done.onclick=()=>{S.seen[i]=true;save();el('revealOne').classList.add('hidden');el('revealGate').classList.remove('hidden');renderRevealGate();};
+  btns.appendChild(done);
+}
+el('toNightBtn').onclick=()=>startNight();
+
+/* ===================== NIGHT ===================== */
+function buildQueue(){
+  const q=[];
+  WAKE_ORDER.forEach(role=>{playersWithDealt(role).forEach(p=>q.push({role,p}));});
+  return q;
+}
+function startNight(){
+  S.phase='night';S.queue=buildQueue();S.nightIdx=0;S.ns='pass';S.sub='';S.tmp=[];S.reveal=null;
+  save();showPhase();
+  if(S.queue.length===0)startDay();
+}
+function actbar(){const d=document.createElement('div');d.className='actbtns';return d;}
+function btn(label,cls,fn,dis){const b=document.createElement('button');b.className='btn '+(cls||'');b.textContent=label;if(dis)b.disabled=true;else b.onclick=fn;return b;}
+function reminder(html){return `<div class="reminder">${html}</div>`;}
+function nextNight(){S.nightIdx++;S.ns='pass';S.sub='';S.tmp=[];S.reveal=null;save();if(S.nightIdx>=S.queue.length){startDay();}else renderGame();}
+
+function pickGrid(items){const g=document.createElement('div');g.className='pick-grid';items.forEach(it=>g.appendChild(it));return g;}
+function playerCard(i,label,onClick,disabled,selected){const d=document.createElement('div');d.className='pcard'+(disabled?' disabled':'')+(selected?' sel':'');d.innerHTML=`${S.names[i]}${label?`<span class="cidx">${label}</span>`:''}`;if(!disabled&&onClick)d.onclick=onClick;return d;}
+function centerCard(k,onClick,selected){const d=document.createElement('div');d.className='pcard center-card'+(selected?' sel':'');d.innerHTML=`<span class="cback">${ICON.cards}</span>Center ${k+1}`;if(onClick)d.onclick=onClick;return d;}
+
+function renderNight(){
+  const ap=el('actionPanel');ap.innerHTML='';
+  if(S.nightIdx>=S.queue.length){startDay();return;}
+  const item=S.queue[S.nightIdx];const p=item.p;const role=item.role;const name=S.names[p];
+  if(S.ns==='pass'){
+    ap.innerHTML=`<div class="lead">The night · hand-off ${S.nightIdx+1} of ${S.queue.length}</div><h2>Pass the laptop to ${name}</h2>`+
+      reminder(`Everyone else, look away from the screen. Only <b>${name}</b> should see the next screen. When ${name} is holding the laptop, continue.`);
+    const bar=actbar();bar.appendChild(btn('I am '+name+' — begin my turn','wolf',()=>{S.ns='main';S.sub='';S.tmp=[];S.reveal=null;save();renderGame();}));ap.appendChild(bar);
+    return;
+  }
+  /* S.ns === 'main' — role specific */
+  switch(role){
+    case 'werewolf':return nightWerewolf(ap,p,name);
+    case 'minion':return nightMinion(ap,p,name);
+    case 'mason':return nightMason(ap,p,name);
+    case 'seer':return nightSeer(ap,p,name);
+    case 'robber':return nightRobber(ap,p,name);
+    case 'troublemaker':return nightTroublemaker(ap,p,name);
+    case 'drunk':return nightDrunk(ap,p,name);
+    case 'insomniac':return nightInsomniac(ap,p,name);
+  }
+}
+function doneBtn(ap,label){const bar=actbar();bar.appendChild(btn(label||'Done — hide & pass on','gold',()=>nextNight()));ap.appendChild(bar);}
+
+function nightWerewolf(ap,p,name){
+  const wolves=playersWithDealt('werewolf');
+  const others=wolves.filter(x=>x!==p);
+  const lone=wolves.length===1;
+  if(S.sub==='center'){
+    const k=S.tmp[0];const r=S.cards[centerIdx(k)];
+    ap.innerHTML=`<div class="lead">Werewolf · for ${name} only</div><h2>Center card ${k+1}</h2>`+cardBlock(r,'A card nobody is holding. Remember it.')+reminder('This card is in the center, not in a player&rsquo;s hand.');
+    doneBtn(ap);return;
+  }
+  ap.innerHTML=`<div class="lead">Werewolf · for ${name} only</div><h2>You are a Werewolf</h2>`;
+  if(others.length){
+    ap.innerHTML+=reminder(`The other Werewolf${others.length>1?'s are':' is'}: <b>${others.map(i=>S.names[i]).join(', ')}</b>. You win together if no Werewolf is killed.`);
+    doneBtn(ap);
+  }else{
+    ap.innerHTML+=reminder('You are the <b>only</b> Werewolf among the players. You may look at one center card to help your bluff.');
+    const g=pickGrid([0,1,2].map(k=>centerCard(k,()=>{S.tmp=[k];S.sub='center';save();renderGame();})));
+    ap.appendChild(g);
+    const bar=actbar();bar.appendChild(btn('Skip — look at no card','ghost',()=>nextNight()));ap.appendChild(bar);
+  }
+}
+function nightMinion(ap,p,name){
+  const wolves=playersWithDealt('werewolf');
+  ap.innerHTML=`<div class="lead">Minion · for ${name} only</div><h2>You serve the Werewolves</h2>`+
+    reminder(wolves.length?`The Werewolf${wolves.length>1?'s are':' is'}: <b>${wolves.map(i=>S.names[i]).join(', ')}</b>. They do not know you. You win if no Werewolf is killed — protect them, even at the cost of your own life.`:'There are <b>no Werewolves</b> among the players — both Werewolf cards are in the center. You win if no player is killed.');
+  doneBtn(ap);
+}
+function nightMason(ap,p,name){
+  const masons=playersWithDealt('mason').filter(x=>x!==p);
+  ap.innerHTML=`<div class="lead">Mason · for ${name} only</div><h2>You are a Mason</h2>`+
+    reminder(masons.length?`The other Mason is: <b>${masons.map(i=>S.names[i]).join(', ')}</b>. You are both on the village team.`:'You are the <b>only</b> Mason among the players — the other Mason card is in the center.');
+  doneBtn(ap);
+}
+function nightSeer(ap,p,name){
+  if(S.sub==='player-show'){
+    const t=S.tmp[0];const r=S.cards[t];
+    ap.innerHTML=`<div class="lead">Seer · for ${name} only</div><h2>${S.names[t]}&rsquo;s card</h2>`+cardBlock(r);
+    doneBtn(ap);return;
+  }
+  if(S.sub==='center-show'){
+    ap.innerHTML=`<div class="lead">Seer · for ${name} only</div><h2>Two center cards</h2>`;
+    const row=document.createElement('div');row.style.display='flex';row.style.gap='10px';row.style.flexWrap='wrap';row.style.justifyContent='center';
+    S.tmp.forEach(k=>{const wrap=document.createElement('div');wrap.innerHTML=`<div class="dim" style="font-family:var(--util);font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Center ${k+1}</div>`+cardBlock(S.cards[centerIdx(k)]);row.appendChild(wrap);});
+    ap.appendChild(row);doneBtn(ap);return;
+  }
+  if(S.sub==='player'){
+    ap.innerHTML=`<div class="lead">Seer · for ${name} only</div><h2>Whose card will you see?</h2>`+reminder('Pick one other player.');
+    const items=[];for(let i=0;i<S.count;i++)if(i!==p)items.push(playerCard(i,'',()=>{S.tmp=[i];S.sub='player-show';save();renderGame();}));
+    ap.appendChild(pickGrid(items));
+    const bar=actbar();bar.appendChild(btn('← Back','ghost',()=>{S.sub='';save();renderGame();}));ap.appendChild(bar);return;
+  }
+  if(S.sub==='center'){
+    ap.innerHTML=`<div class="lead">Seer · for ${name} only</div><h2>Pick two center cards</h2>`+reminder(`Tap two of the three. Chosen: <b>${S.tmp.length}</b> / 2`);
+    const items=[0,1,2].map(k=>centerCard(k,()=>{const idx=S.tmp.indexOf(k);if(idx>=0)S.tmp.splice(idx,1);else if(S.tmp.length<2)S.tmp.push(k);save();renderGame();},S.tmp.includes(k)));
+    ap.appendChild(pickGrid(items));
+    const bar=actbar();bar.appendChild(btn('See these two','gold',()=>{S.sub='center-show';save();renderGame();},S.tmp.length!==2));bar.appendChild(btn('← Back','ghost',()=>{S.sub='';S.tmp=[];save();renderGame();}));ap.appendChild(bar);return;
+  }
+  /* choice */
+  ap.innerHTML=`<div class="lead">Seer · for ${name} only</div><h2>Look into the dark</h2>`+reminder('Choose one: see one other player&rsquo;s card, or two of the three center cards.');
+  const bar=actbar();
+  bar.appendChild(btn("One player's card",'ink',()=>{S.sub='player';S.tmp=[];save();renderGame();}));
+  bar.appendChild(btn('Two center cards','ink',()=>{S.sub='center';S.tmp=[];save();renderGame();}));
+  ap.appendChild(bar);
+}
+function nightRobber(ap,p,name){
+  if(S.sub==='show'){
+    const r=S.cards[p];
+    ap.innerHTML=`<div class="lead">Robber · for ${name} only</div><h2>Your new card</h2>`+cardBlock(r,'You are now this role for the rest of the game. The player you robbed now holds your old Robber card.');
+    doneBtn(ap);return;
+  }
+  ap.innerHTML=`<div class="lead">Robber · for ${name} only</div><h2>Rob a player?</h2>`+reminder('Pick a player to swap cards with, then see your new role. Or skip and stay the Robber.');
+  const items=[];for(let i=0;i<S.count;i++)if(i!==p)items.push(playerCard(i,'',()=>{pushHistory();const tmp=S.cards[p];S.cards[p]=S.cards[i];S.cards[i]=tmp;S.sub='show';save();renderGame();}));
+  ap.appendChild(pickGrid(items));
+  const bar=actbar();bar.appendChild(btn('Skip — do not rob','ghost',()=>nextNight()));ap.appendChild(bar);
+}
+function nightTroublemaker(ap,p,name){
+  if(S.sub==='done'){
+    const a=S.tmp[0],b=S.tmp[1];
+    ap.innerHTML=`<div class="lead">Troublemaker · for ${name} only</div><h2>Swapped</h2>`+reminder(`You swapped the cards of <b>${S.names[a]}</b> and <b>${S.names[b]}</b>. You did not look at either. Neither of them knows.`);
+    doneBtn(ap);return;
+  }
+  const picked=S.tmp.length;
+  ap.innerHTML=`<div class="lead">Troublemaker · for ${name} only</div><h2>Swap two other players</h2>`+reminder(`Pick two players (not yourself) to swap with each other. Chosen: <b>${picked}</b> / 2`);
+  const items=[];for(let i=0;i<S.count;i++){if(i===p){items.push(playerCard(i,'you',null,true));continue;}items.push(playerCard(i,'',()=>{const idx=S.tmp.indexOf(i);if(idx>=0)S.tmp.splice(idx,1);else if(S.tmp.length<2)S.tmp.push(i);save();renderGame();},false,S.tmp.includes(i)));}
+  ap.appendChild(pickGrid(items));
+  const bar=actbar();
+  bar.appendChild(btn('Swap these two','gold',()=>{pushHistory();const a=S.tmp[0],b=S.tmp[1];const t=S.cards[a];S.cards[a]=S.cards[b];S.cards[b]=t;S.sub='done';save();renderGame();},S.tmp.length!==2));
+  bar.appendChild(btn('Skip — swap no one','ghost',()=>nextNight()));
+  ap.appendChild(bar);
+}
+function nightDrunk(ap,p,name){
+  if(S.sub==='done'){
+    ap.innerHTML=`<div class="lead">Drunk · for ${name} only</div><h2>You took a center card</h2>`+reminder('You swapped your card with a center card <b>without looking</b>. You no longer know what you are — but you are still on the village team.');
+    doneBtn(ap);return;
+  }
+  ap.innerHTML=`<div class="lead">Drunk · for ${name} only</div><h2>Trade with the center</h2>`+reminder('Pick one center card to swap with your own. You will <b>not</b> see your new role.');
+  const items=[0,1,2].map(k=>centerCard(k,()=>{pushHistory();const ci=centerIdx(k);const t=S.cards[p];S.cards[p]=S.cards[ci];S.cards[ci]=t;S.sub='done';save();renderGame();}));
+  ap.appendChild(pickGrid(items));
+}
+function nightInsomniac(ap,p,name){
+  if(S.sub==='show'){
+    const r=S.cards[p];const changed=r!==S.dealt[p];
+    ap.innerHTML=`<div class="lead">Insomniac · for ${name} only</div><h2>Your card right now</h2>`+cardBlock(r,changed?'Your card changed during the night — someone moved it.':'Your card has not moved. You are still the Insomniac.');
+    doneBtn(ap);return;
+  }
+  ap.innerHTML=`<div class="lead">Insomniac · for ${name} only</div><h2>You cannot sleep</h2>`+reminder('Everyone else has finished. Look at your own card to see whether it changed.');
+  const bar=actbar();bar.appendChild(btn('Look at my card','gold',()=>{S.sub='show';save();renderGame();}));ap.appendChild(bar);
+}
+
+/* ===================== DAY ===================== */
+function startDay(){S.phase='day';save();showPhase();}
+function renderDay(){
+  const ap=el('actionPanel');
+  ap.innerHTML=`<div class="lead">Day · discussion</div><h2>The night is over — wake up</h2>`+
+    reminder('Talk it out. Who claims what? What moved? Nobody reveals a card. Use the timer, then everyone votes at the same moment. Each player will point at one other player to eliminate.');
+  const bar=actbar();
+  bar.appendChild(btn('Go to the vote →','gold',()=>{S.phase='vote';S.votes={};save();showPhase();}));
+  ap.appendChild(bar);
+  el('timerBar').classList.remove('hidden');
+  renderTimer();
+}
+
+/* ===================== VOTE ===================== */
+function renderVote(){
+  const ap=el('actionPanel');ap.innerHTML='';
+  ap.innerHTML=`<div class="lead">Day · the vote</div><h2>Everyone points at once</h2>`+
+    reminder('Set each player&rsquo;s vote to the player they are pointing at. In the real game this is simultaneous — fill it in together on a count of three. The player with the <b>most</b> votes dies. Ties: all tied players die. If nobody gets more than one vote, no one dies.');
+  const grid=document.createElement('div');grid.className='vote-grid';
+  for(let i=0;i<S.count;i++){
+    const v=document.createElement('div');v.className='voter';
+    v.innerHTML=`<div class="vn">${S.names[i]} votes for</div>`;
+    const opts=document.createElement('div');opts.className='vopts';
+    for(let j=0;j<S.count;j++){if(j===i)continue;const b=document.createElement('button');b.textContent=S.names[j];b.setAttribute('aria-pressed',S.votes[i]===j);b.onclick=()=>{S.votes[i]=j;save();renderGame();};opts.appendChild(b);}
+    v.appendChild(opts);grid.appendChild(v);
+  }
+  ap.appendChild(grid);
+  const allIn=Object.keys(S.votes).length===S.count && Array.from({length:S.count},(_,i)=>S.votes[i]!==undefined).every(Boolean);
+  const tally=voteTally();let maxv=0;for(let i=0;i<S.count;i++)maxv=Math.max(maxv,tally[i]);
+  const info=document.createElement('div');info.className='tally';info.textContent=`Votes cast ${Object.values(S.votes).length} / ${S.count}` + (allIn?` · highest ${maxv}`:'');
+  ap.appendChild(info);
+  const bar=actbar();bar.appendChild(btn('Tally & reveal the result','gold',()=>resolveGame(),!allIn));
+  ap.appendChild(bar);
+  el('timerBar').classList.add('hidden');
+}
+function voteTally(){const t={};for(let i=0;i<S.count;i++)t[i]=0;for(let i=0;i<S.count;i++){const target=S.votes[i];if(target!==undefined&&target!==null)t[target]++;}return t;}
+
+/* ===================== RESOLVE ===================== */
+function computeDeaths(){
+  const t=voteTally();let max=0;for(let i=0;i<S.count;i++)max=Math.max(max,t[i]);
+  let deaths=[];
+  if(max>1){for(let i=0;i<S.count;i++)if(t[i]===max)deaths.push(i);}
+  /* Hunter: if a dead player's FINAL card is Hunter, the player they voted for dies too (resolve transitively) */
+  let changed=true;
+  while(changed){changed=false;
+    for(let i=0;i<S.count;i++){
+      if(deaths.includes(i)&&S.cards[i]==='hunter'){const target=S.votes[i];if(target!==undefined&&target!==null&&!deaths.includes(target)){deaths.push(target);changed=true;}}
+    }
+  }
+  return{tally:t,max,deaths};
+}
+function resolveGame(){
+  pushHistory();
+  const {tally,max,deaths}=computeDeaths();
+  const finalOf=i=>S.cards[i];
+  const werewolfPlayers=[];for(let i=0;i<S.count;i++)if(finalOf(i)==='werewolf')werewolfPlayers.push(i);
+  const wwExist=werewolfPlayers.length>0;
+  const wwKilled=deaths.some(i=>finalOf(i)==='werewolf');
+  const tannerKilled=deaths.some(i=>finalOf(i)==='tanner');
+  const minionExist=(()=>{for(let i=0;i<S.count;i++)if(finalOf(i)==='minion')return true;return false;})();
+  const hunterFired=deaths.some(i=>finalOf(i)==='hunter'&&S.votes[i]!==undefined);
+
+  const winners=new Set();
+  if(tannerKilled){
+    winners.add('tanner');
+    /* village loses whenever the Tanner dies. Werewolves win only if no werewolf was killed. */
+    if(wwExist&&!wwKilled)winners.add('werewolf');
+  }else if(wwExist){
+    if(wwKilled)winners.add('village');else winners.add('werewolf');
+  }else{
+    if(deaths.length===0)winners.add('village');
+    else if(minionExist)winners.add('werewolf');
+    /* else: nobody wins — the village killed an innocent with no wolves about */
+  }
+
+  /* public log */
+  S.log=[];
+  for(let i=0;i<S.count;i++){const t=S.votes[i];if(t!==undefined&&t!==null)logEvent(`${S.names[i]} voted for ${S.names[t]}`,'vote');}
+  if(deaths.length===0)logEvent('No one received more than one vote — nobody dies.','death');
+  else logEvent(`Killed: ${deaths.map(i=>S.names[i]).join(', ')}${hunterFired?' (a Hunter took someone down)':''}`,'death');
+  const wlabel=[...winners].map(w=>w==='village'?'Village team':w==='werewolf'?'Werewolf team':'Tanner').join(' + ')||'No team';
+  logEvent(`Result — ${wlabel} ${winners.size?'win':'wins'}.`,'win');
+
+  S.result={deaths,tally,max,winners:[...winners],wwExist,wwKilled,tannerKilled,hunterFired};
+  S.phase='result';save();showPhase();
+  showResultModal();
+}
+
+function renderResult(){
+  const R=S.result;const ap=el('actionPanel');
+  const winners=R.winners;
+  const primary=winners.includes('werewolf')?'werewolf':winners.includes('village')?'village':winners.includes('tanner')?'tanner':'none';
+  const title=winners.length? winners.map(w=>w==='village'?'Village wins':w==='werewolf'?'Werewolves win':'Tanner wins').join(' + ') : 'No team wins';
+  let sub;
+  if(!winners.length)sub='With no Werewolf among the players, the village killed an innocent. Everyone loses this one.';
+  else if(R.tannerKilled)sub='The Tanner got itself lynched. '+(winners.includes('werewolf')?'No Werewolf died, so the pack escapes too.':'');
+  else if(winners.includes('village'))sub=R.wwExist?'At least one Werewolf was caught.':'There were no Werewolves, and the village wisely killed no one.';
+  else sub='No Werewolf was killed. The pack survives the night.';
+
+  ap.innerHTML=`<div class="lead">The reckoning</div>`+
+    `<div class="resultbanner ${primary}"><div class="cs-ic" style="width:50px;height:50px;margin:0 auto 6px;color:var(--moon)">${ICON.trophy}</div><div class="rb-win">${title}</div><div class="rb-sub">${sub}</div></div>`+
+    `<div class="eyebrow">Who was who — dealt card → final card</div>`+
+    buildRoleMap();
+  const bar=actbar();
+  bar.appendChild(btn('Play again (same players)','gold',()=>{counts=Object.assign({},S.counts);selCount=S.count;const names=S.names.slice();S=null;try{localStorage.removeItem(KEY);}catch(e){}renderNameInputs();names.forEach((nm,i)=>{if(el('nm'+i))el('nm'+i).value=nm;});renderRoleList();renderCountPills();showPhase();}));
+  bar.appendChild(btn('New game','ghost',()=>doNewGame()));
+  ap.appendChild(bar);
+  el('timerBar').classList.add('hidden');
+}
+function playerWins(i){const R=S.result;const team=ROLES[S.cards[i]].team;return R.winners.includes(team);}
+function buildRoleMap(){
+  const R=S.result;let rows='';
+  for(let i=0;i<S.count;i++){
+    const d=S.dealt[i],f=S.cards[i];const moved=d!==f;const dead=R.deaths.includes(i);
+    const fT=ROLES[f].team;const win=playerWins(i);
+    rows+=`<div class="rr"><span class="who${dead?' dead':''}">${S.names[i]}${dead?' ✝':''}</span>`+
+      `<span class="rolepill ${ROLES[d].team}">${ROLES[d].label}</span>`+
+      `<span class="arrow">${moved?'→ '+`<span class="rolepill ${fT}">${ROLES[f].label}</span>`:'<span class="dim">unchanged</span>'}</span>`+
+      `<span class="outcome ${win?'won':'lost'}">${win?'won':'lost'}</span></div>`;
+  }
+  let center=`<div class="center-head">Center cards (dealt → final)</div>`;
+  for(let k=0;k<3;k++){const ci=centerIdx(k);const d=S.dealt[ci],f=S.cards[ci];const moved=d!==f;
+    center+=`<div class="rr"><span class="who dim">Center ${k+1}</span><span class="rolepill ${ROLES[d].team}">${ROLES[d].label}</span><span class="arrow">${moved?'→ '+`<span class="rolepill ${ROLES[f].team}">${ROLES[f].label}</span>`:'<span class="dim">unchanged</span>'}</span><span></span></div>`;}
+  return `<div class="rolemap">${rows}${center}</div>`;
+}
+
+/* ===================== LOG ===================== */
+function renderLog(){
+  const host=el('gameLog');if(!host)return;host.innerHTML='';
+  const log=S.log||[];
+  if(!log.length){host.innerHTML='<div class="logempty">Only public facts appear here — the votes, who dies, and who wins. Night actions stay secret.</div>';return;}
+  log.forEach(e=>{const row=document.createElement('div');row.className='logrow '+(e.k||'');row.innerHTML=e.t;host.appendChild(row);});
+  host.scrollTop=host.scrollHeight;
+}
+
+/* ===================== RENDER DISPATCH ===================== */
+function renderGame(){
+  const chip=el('phaseChip');
+  const ph=S.phase;
+  chip.textContent=ph==='night'?'Night':ph==='day'?'Day · discuss':ph==='vote'?'Day · vote':ph==='result'?'Result':'';
+  if(ph==='night')renderNight();
+  else if(ph==='day')renderDay();
+  else if(ph==='vote')renderVote();
+  else if(ph==='result')renderResult();
+  renderLog();
+  el('undoBtn').disabled=!(S.history&&S.history.length);
+}
+
+/* ===================== MODALS ===================== */
+function mount(h){el('modalMount').innerHTML=h;}
+function closeModal(){el('modalMount').innerHTML='';}
+window.closeModal=closeModal;
+function modalShell(eyebrow,title,body,foot){mount(`<div class="scrim"><div class="modal"><div class="mhead"><div class="ek">${eyebrow}</div><h2>${title}</h2></div><div class="mbody">${body}</div><div class="mfoot">${foot}</div></div></div>`);}
+function btnHTML(cls,label,call){return `<button class="btn ${cls}" onclick="${call}">${label}</button>`;}
+
+function showHowModal(fromSetup){
+  const body=`
+  <div class="loop">
+    <div class="loopstep"><div class="ln">1</div><div class="lt"><b>Deal.</b> One card goes to each player and three to the center. Everyone secretly looks at their own card — then forgets nothing.</div></div>
+    <div class="loopstep"><div class="ln">2</div><div class="lt"><b>The night.</b> The laptop passes to each waking role in order. Werewolves see each other; the Seer peeks; the Robber, Troublemaker and Drunk move cards around. Your card can change while you sleep.</div></div>
+    <div class="loopstep"><div class="ln">3</div><div class="lt"><b>The day.</b> Everyone wakes and argues. Use the timer. Nobody shows a card.</div></div>
+    <div class="loopstep"><div class="ln">4</div><div class="lt"><b>The vote.</b> On a count of three, everyone points at one player. The player with the most votes dies. Ties kill everyone tied. If no one gets more than one vote, no one dies.</div></div>
+  </div>
+  <p class="muted">Winning is judged on your <b>final</b> card, after every night swap.</p>
+  <details><summary>How to win</summary>
+  <ul><li><b>Village team</b> wins if at least one Werewolf is killed. If there is no Werewolf at all, the village wins only by killing no one.</li>
+  <li><b>Werewolf team</b> (Werewolves and the Minion) wins if no Werewolf is killed.</li>
+  <li><b>Tanner</b> wins alone if the Tanner is killed — the village loses, and the Werewolves also lose if one of them died.</li>
+  <li><b>Hunter</b>: if the Hunter dies, the player the Hunter voted for dies too.</li></ul></details>
+  <p class="muted">The laptop deals the cards, holds the center, runs the night in order, and judges the winner — so no phones are needed. The only honour-system part is looking away when the laptop is passed.</p>`;
+  modalShell('How to play','One night, start to finish',body,btnHTML('gold',fromSetup?'Got it':'Close','closeModal()'));
+}
+el('howBtn2').onclick=()=>showHowModal(false);
+
+function showRolesModal(pool){
+  const present=ROLE_KEYS.filter(r=>pool.includes(r));
+  const order=['werewolf','minion','mason','seer','robber','troublemaker','drunk','insomniac','villager','tanner','hunter'].filter(r=>present.includes(r));
+  const count={};pool.forEach(r=>count[r]=(count[r]||0)+1);
+  let rows=order.map(r=>{const R=ROLES[r];return `<div class="ref-role"><div class="ri">${ICON[R.icon]}</div><div><div class="rtitle">${R.label}${count[r]>1?' ×'+count[r]:''}<span class="tg ${R.team}">${teamLabel(R.team)}</span></div><div class="muted" style="font-size:14px;margin-top:3px">${R.night}</div></div></div>`;}).join('');
+  const centerNote=S?`<p class="muted" style="margin-top:10px">Plus <b>3 center cards</b> drawn from this same set at random — nobody holds them, but the Seer, a lone Werewolf and the Drunk can touch them.</p>`:'';
+  modalShell('Reference','Roles in this game',rows+centerNote,btnHTML('gold','Close','closeModal()'));
+}
+el('rolesBtn').onclick=()=>showRolesModal(S?S.dealt:countsToPool(counts));
+
+function showOrderModal(){
+  const pool=S?S.dealt:countsToPool(counts);
+  const present=WAKE_ORDER.filter(r=>pool.includes(r));
+  const body=`<p class="muted">The night runs in this fixed order. Only roles that were dealt to a <b>player</b> wake — a role sitting in the center sleeps.</p>`+
+    `<div class="loop">`+WAKE_ORDER.map((r,n)=>{const R=ROLES[r];const on=present.includes(r);return `<div class="loopstep" style="${on?'':'opacity:.4'}"><div class="ln">${n+1}</div><div class="lt"><b>${R.label}</b>${on?'':' <span class="dim">(not in play)</span>'}<br><span class="muted" style="font-size:13px">${R.night}</span></div></div>`;}).join('')+`</div>`+
+    `<p class="muted">Villager, Tanner and Hunter have no night action — they never wake.</p>`;
+  modalShell('Night order','Who wakes, and when',body,btnHTML('gold','Close','closeModal()'));
+}
+el('orderBtn').onclick=showOrderModal;
+
+function showResultModal(){
+  const R=S.result;const winners=R.winners;
+  const title=winners.length? winners.map(w=>w==='village'?'Village wins':w==='werewolf'?'Werewolves win':'Tanner wins').join(' + ') : 'No team wins';
+  const body=`<p>${R.deaths.length?('<b>'+R.deaths.map(i=>S.names[i]).join(', ')+'</b> '+(R.deaths.length>1?'were':'was')+' killed.'):'<b>No one</b> was killed — the votes were too split.'}${R.hunterFired?' A dying Hunter took their vote down with them.':''}</p><p class="muted">Scroll the board to see every dealt card and where it ended up.</p>`;
+  modalShell('Game over',title,body,btnHTML('gold','See the full reveal','closeModal()'));
+}
+
+/* ===================== UNDO / NEW ===================== */
+el('undoBtn').onclick=()=>{if(!(S.history&&S.history.length))return;const snap=JSON.parse(S.history.pop());const h=S.history;S=snap;S.history=h;closeModal();save();showPhase();};
+function doNewGame(){S=null;try{localStorage.removeItem(KEY);}catch(e){}timerStop();el('timerBar').classList.add('hidden');selCount=5;counts=suggestedSet(5);renderCountPills();renderNameInputs();renderRoleList();showPhase();}
+el('newGame').onclick=doNewGame;
+
+/* ===================== TIMER ===================== */
+let TMR={remaining:300,dur:300,id:null,running:false};
+function fmtT(s){s=Math.max(0,s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function renderTimer(){const d=el('timerDisplay');if(!d)return;const bar=el('timerBar');d.textContent=fmtT(TMR.remaining);el('tStart').textContent=TMR.running?'Pause':'Start';bar.classList.toggle('low',TMR.running&&TMR.remaining<=15&&TMR.remaining>0);bar.classList.toggle('done',TMR.remaining<=0);
+  const pre=el('timerPresets');if(pre&&!pre.dataset.built){pre.dataset.built='1';[['3m',180],['5m',300],['7m',420]].forEach(([lab,sec])=>{const b=document.createElement('button');b.textContent=lab;b.onclick=()=>{timerStop();TMR.remaining=TMR.dur=sec;renderTimer();};pre.appendChild(b);});}
+}
+function timerTick(){TMR.remaining--;if(TMR.remaining<=0){TMR.remaining=0;timerStop();}renderTimer();}
+function timerStart(){if(TMR.remaining<=0)TMR.remaining=TMR.dur;TMR.running=true;clearInterval(TMR.id);TMR.id=setInterval(timerTick,1000);renderTimer();}
+function timerStop(){TMR.running=false;clearInterval(TMR.id);TMR.id=null;renderTimer();}
+el('tStart').onclick=()=>{TMR.running?timerStop():timerStart();};
+el('tAdd').onclick=()=>{TMR.remaining+=30;renderTimer();};
+el('tReset').onclick=()=>{timerStop();TMR.remaining=TMR.dur;renderTimer();};
+
+/* ===================== PHASE ===================== */
+function showPhase(){
+  const phase=S?S.phase:'setup';
+  el('setup').classList.toggle('hidden',phase!=='setup');
+  el('reveal').classList.toggle('hidden',phase!=='reveal');
+  el('game').classList.toggle('hidden',!(phase==='night'||phase==='day'||phase==='vote'||phase==='result'));
+  if(phase==='reveal')renderRevealGate();
+  if(phase==='night'||phase==='day'||phase==='vote'||phase==='result')renderGame();
+}
+
+/* ===================== PERSISTENCE ===================== */
+const KEY='one-night-werewolf-v1';
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function load(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+function boot(initial){
+  S=(initial&&initial.S)?initial.S:load();
+  counts=suggestedSet(selCount);
+  renderCountPills();renderNameInputs();renderRoleList();
+  if(S&&S.phase){selCount=S.count;showPhase();}else{S=null;showPhase();}
+}
+if(window.claude&&window.claude.hot){window.claude.hot.snapshot(()=>({S}));window.claude.hot.ready?window.claude.hot.ready(d=>boot(d)):boot(window.claude.hot.data||{});}else boot({});
+</script>

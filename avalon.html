@@ -1,0 +1,776 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Resistance: Avalon</title>
+<style>
+/* Committed look: an illuminated Arthurian quest board on one shared screen.
+   Palette: --navy royal field, --parch vellum, --gold leaf, --good blue, --evil crimson. */
+:root{
+  --navy:#17365c; --navy-deep:#0f2746; --navy-dark:#081a31;
+  --parch:#f3e7c8; --parch-2:#ebdcb6; --parch-edge:#cbb480;
+  --ink:#2a2012; --ink-soft:#5c4a2e;
+  --gold:#c7a034; --gold-deep:#9a781d; --gold-light:#e9ca6f;
+  --good:#2f6fb0; --good-deep:#1d4a7c; --good-dark:#122f4f;
+  --evil:#9a2f2f; --evil-deep:#6c1e1e; --evil-dark:#3a1010;
+  --success:#2f7d4f; --success-deep:#1d5636;
+  --fail:#9a2b2b; --fail-deep:#6c1818;
+  color-scheme:dark;
+  --display:"Cinzel","Times New Roman",serif;
+  --body:"EB Garamond",Georgia,serif;
+  --util:"Cinzel",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;color:var(--ink);font-family:var(--body);line-height:1.5;font-size:17px;-webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(120% 80% at 50% -10%,rgba(199,160,52,.14) 0%,transparent 45%),
+    radial-gradient(140% 120% at 50% 0%,var(--navy) 0%,var(--navy-deep) 55%,var(--navy-dark) 100%) fixed;}
+h1,h2,h3,.disp{font-family:var(--display);font-weight:600;letter-spacing:.02em;text-wrap:balance;}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:18px;padding-block:22px;}
+.eyebrow{font-family:var(--util);text-transform:uppercase;letter-spacing:.18em;font-size:11px;color:var(--gold-light);font-weight:600;}
+button{font-family:var(--display);letter-spacing:.04em;cursor:pointer;border:none;border-radius:3px;}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--gold-light);outline-offset:2px;}
+.btn{background:var(--good);color:#f7efdc;padding:11px 20px;font-size:16px;text-transform:uppercase;border:2px solid var(--good-dark);box-shadow:2px 2px 0 var(--good-dark);transition:transform .08s,box-shadow .08s;}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--good-dark);}
+.btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--good-dark);}
+.btn.gold{background:var(--gold);color:#241a06;border-color:var(--gold-deep);box-shadow:2px 2px 0 var(--gold-deep);}
+.btn.gold:hover{box-shadow:3px 3px 0 var(--gold-deep);}.btn.gold:active{box-shadow:1px 1px 0 var(--gold-deep);}
+.btn.evil{background:var(--evil);color:#f7efdc;border-color:var(--evil-dark);box-shadow:2px 2px 0 var(--evil-dark);}
+.btn.ghost{background:transparent;color:var(--parch);border:2px solid var(--parch-edge);box-shadow:2px 2px 0 rgba(0,0,0,.35);}
+.btn.ghost:hover{color:#fff;}
+.btn.ink{background:var(--ink);color:var(--parch);border-color:#000;box-shadow:2px 2px 0 #000;}
+.btn.sm{padding:7px 13px;font-size:13px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+input[type=text]{background:#fbf4de;color:var(--ink);border:2px solid var(--parch-edge);border-radius:3px;padding:9px 11px;font-family:var(--body);font-size:16px;width:100%;}
+.muted{color:var(--ink-soft);}
+.hidden{display:none!important;}
+
+/* masthead */
+.masthead{position:relative;text-align:center;padding:26px 16px 22px;margin-bottom:20px;overflow:hidden;border:3px solid var(--gold-deep);
+  background:linear-gradient(180deg,var(--navy-deep),var(--navy-dark));color:var(--parch);box-shadow:0 0 0 2px var(--navy-dark),6px 6px 0 rgba(0,0,0,.4);}
+.masthead::before{content:"";position:absolute;inset:-40% -10%;background:repeating-conic-gradient(from 0deg at 50% 40%,rgba(199,160,52,.10) 0deg 9deg,transparent 9deg 18deg);z-index:0;}
+.masthead>*{position:relative;z-index:1;}
+.masthead .crest{width:52px;height:52px;margin:0 auto 4px;color:var(--gold-light);}
+.masthead h1{font-size:clamp(34px,8vw,64px);margin:4px 0;line-height:.95;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--gold-light);text-shadow:2px 2px 0 var(--navy-dark);}
+.masthead .sub{font-family:var(--util);font-size:11px;letter-spacing:.28em;text-transform:uppercase;opacity:.9;}
+.rule{height:2px;background:var(--gold-deep);max-width:220px;margin:10px auto;}
+
+/* panels */
+.panel{background:var(--parch);border:3px solid var(--gold-deep);box-shadow:0 0 0 2px var(--navy-dark),5px 5px 0 rgba(0,0,0,.35);padding:20px;}
+.count-pills{display:flex;gap:8px;flex-wrap:wrap;}
+.count-pills button{background:#fbf4de;color:var(--ink);border:2px solid var(--ink);padding:8px 15px;font-size:17px;}
+.count-pills button[aria-pressed=true]{background:var(--navy);color:var(--gold-light);box-shadow:inset 0 0 0 2px var(--gold-light);}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.spread{justify-content:space-between;}
+.toggles{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 2px;}
+.toggles button{background:#fbf4de;color:var(--ink);border:2px solid var(--ink);padding:8px 13px;font-size:13px;text-transform:uppercase;letter-spacing:.04em;position:relative;}
+.toggles button[aria-pressed=true]{color:#f7efdc;}
+.toggles button.good[aria-pressed=true]{background:var(--good);border-color:var(--good-dark);}
+.toggles button.evil[aria-pressed=true]{background:var(--evil);border-color:var(--evil-dark);}
+.toggles button:disabled{opacity:.35;cursor:not-allowed;}
+.compo{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--util);font-size:13px;color:var(--ink-soft);margin-top:12px;align-items:center;}
+.compo b{color:var(--ink);}
+.compo .good-c{color:var(--good-deep);}.compo .evil-c{color:var(--evil-deep);}
+.warn{border-left:4px solid var(--evil);background:rgba(154,47,47,.12);padding:9px 13px;margin:12px 0;font-size:14px;color:var(--evil-deep);}
+.names-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin:16px 0;}
+.name-row{display:flex;gap:8px;align-items:center;}
+.name-row .idx{font-family:var(--util);color:var(--gold-deep);width:22px;text-align:right;font-size:15px;font-weight:600;}
+
+/* reveal */
+.reveal-stage{min-height:56vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;}
+.reveal-card{background:var(--parch);border:3px solid var(--gold-deep);box-shadow:0 0 0 2px var(--navy-dark),6px 6px 0 rgba(0,0,0,.45);padding:26px 22px;max-width:480px;width:100%;}
+.big-name{font-family:var(--display);font-size:28px;text-transform:uppercase;letter-spacing:.03em;}
+.role-badge{font-family:var(--display);text-transform:uppercase;letter-spacing:.03em;font-size:38px;font-weight:700;padding:6px 0;line-height:1.05;}
+.role-good{color:var(--good-deep);}.role-evil{color:var(--evil-deep);}
+.team-line{font-family:var(--util);text-transform:uppercase;letter-spacing:.12em;font-size:13px;}
+.team-good{color:var(--good-deep);}.team-evil{color:var(--evil-deep);}
+.know-list{list-style:none;padding:0;margin:14px 0 0;text-align:left;}
+.know-list li{padding:8px 0;border-top:1px dashed var(--parch-edge);font-size:15px;}
+.know-list .kl{font-family:var(--util);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-deep);display:block;margin-bottom:2px;}
+.progress-dots{display:flex;gap:7px;justify-content:center;margin-top:10px;flex-wrap:wrap;}
+.dot{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.18);border:1px solid var(--gold-deep);}
+.dot.done{background:var(--gold);border-color:var(--gold-light);}
+.reveal-buttons{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:18px;}
+
+/* board */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;}
+.statusbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0;}
+.stat{background:var(--parch);border:2px solid var(--gold-deep);padding:8px 11px;box-shadow:3px 3px 0 rgba(0,0,0,.3);}
+.stat .k{font-family:var(--util);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-deep);font-weight:600;}
+.stat .v{font-family:var(--display);font-size:21px;font-weight:600;}
+.stat .v.good-c{color:var(--good-deep);}.stat .v.evil-c{color:var(--evil-deep);}
+.track-dots{display:flex;gap:5px;margin-top:6px;align-items:center;}
+.track-dots .td{width:13px;height:13px;border-radius:50%;border:2px solid var(--ink);background:#fbf4de;}
+.track-dots .td.on{background:var(--evil);border-color:var(--evil-dark);}
+.track-dots .td.hammer{box-shadow:0 0 0 2px var(--evil-dark);}
+
+/* quest track */
+.quest-plate{position:relative;border:3px solid var(--gold-deep);margin:14px 0;padding:16px 14px 14px;overflow:hidden;box-shadow:0 0 0 2px var(--navy-dark),5px 5px 0 rgba(0,0,0,.4);
+  background:linear-gradient(180deg,var(--navy-deep),var(--navy-dark));color:var(--parch);}
+.quest-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
+.quest-head h3{margin:0;font-size:22px;text-transform:uppercase;letter-spacing:.05em;color:var(--gold-light);}
+.quest-head .tag{font-family:var(--util);font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.85;}
+.quests{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;}
+.quest{position:relative;aspect-ratio:3/4;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px 3px;
+  background:radial-gradient(circle at 50% 38%,#223f63,#152d4b);border:2px solid rgba(233,202,111,.3);}
+.quest .qn{position:absolute;top:4px;left:6px;font-family:var(--util);font-size:10px;opacity:.7;}
+.quest .qsize{font-family:var(--display);font-weight:700;font-size:26px;line-height:1;color:var(--gold-light);}
+.quest .qlab{font-family:var(--util);font-size:9px;letter-spacing:.06em;text-transform:uppercase;opacity:.8;margin-top:3px;}
+.quest .q2{position:absolute;bottom:4px;left:0;right:0;font-family:var(--util);font-size:8px;letter-spacing:.03em;text-transform:uppercase;color:#f0b86a;}
+.quest.current{border-color:var(--gold-light);box-shadow:0 0 0 2px var(--gold-light),0 0 14px rgba(233,202,111,.45);}
+.quest.success{background:radial-gradient(circle at 50% 38%,#357d55,#1d5636);border-color:#8fd3a8;}
+.quest.fail{background:radial-gradient(circle at 50% 38%,#9a3030,#5f1818);border-color:#e39a9a;}
+.quest.success .qsize,.quest.fail .qsize{color:#fff;}
+.quest .qmark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.quest .qmark svg{width:40%;height:40%;color:#fff;opacity:.92;}
+
+/* table */
+.table-strip{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 2px;}
+.seat{position:relative;font-family:var(--util);font-size:13px;padding:7px 11px;border:2px solid var(--gold-deep);background:var(--parch);color:var(--ink);min-width:74px;text-align:center;}
+.seat .nm{font-weight:600;letter-spacing:.02em;}
+.seat .badges{display:flex;gap:4px;justify-content:center;margin-top:3px;min-height:16px;flex-wrap:wrap;}
+.seat .bdg{font-size:9px;font-weight:600;letter-spacing:.05em;padding:1px 5px;border-radius:2px;text-transform:uppercase;}
+.bdg.leader{background:var(--gold);color:#241a06;}
+.bdg.team{background:var(--good);color:#fff;}
+.seat.pick{cursor:pointer;}
+.seat.pick:hover{background:var(--gold-light);}
+.seat.on{background:var(--good);color:#fff;border-color:var(--good-dark);}
+.seat.on .nm{color:#fff;}
+.seat.disabled{opacity:.42;}
+
+/* action panel */
+.action{background:var(--parch);border:3px solid var(--gold-deep);box-shadow:0 0 0 2px var(--navy-dark),5px 5px 0 rgba(0,0,0,.4);padding:18px 20px;margin:10px 0 16px;}
+.action h2{margin:0 0 4px;font-size:23px;text-transform:uppercase;letter-spacing:.02em;}
+.action .lead{font-family:var(--util);text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--gold-deep);}
+.reminder{border-left:4px solid var(--gold);background:rgba(199,160,52,.14);padding:10px 14px;margin:12px 0;font-size:14.5px;}
+.reminder b{color:var(--evil-deep);}
+.actbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center;}
+.count-note{font-family:var(--util);font-size:13px;color:var(--ink-soft);}
+.vote-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;margin:12px 0;}
+.voter{border:2px solid var(--gold-deep);background:#fbf4de;padding:8px 10px;display:flex;flex-direction:column;gap:7px;}
+.voter .vn{font-family:var(--util);font-weight:600;font-size:14px;}
+.voter .vb{display:flex;gap:6px;}
+.voter .vb button{flex:1;padding:6px 0;font-size:12px;border:2px solid var(--ink);background:var(--parch);color:var(--ink);text-transform:uppercase;}
+.voter .vb button.yes[aria-pressed=true]{background:var(--good);color:#fff;border-color:var(--good-dark);}
+.voter .vb button.no[aria-pressed=true]{background:var(--evil);color:#fff;border-color:var(--evil-dark);}
+.tally{font-family:var(--display);font-size:19px;text-transform:uppercase;margin-top:6px;}
+.quest-cards{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:16px 0;}
+.qcard{width:120px;border:3px solid var(--ink);border-radius:6px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;color:#f7efdc;box-shadow:3px 3px 0 rgba(0,0,0,.35);transition:transform .08s;}
+.qcard:hover:not(.disabled){transform:translateY(-4px);}
+.qcard.success{background:linear-gradient(160deg,#357d55,#1d5636);}
+.qcard.fail{background:linear-gradient(160deg,#a83333,#5f1818);}
+.qcard.disabled{opacity:.35;cursor:not-allowed;}
+.qcard .ql{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:15px;}
+.qcard .qi{width:40px;height:40px;}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(6,16,30,.8);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50;overflow:auto;}
+.modal{background:var(--parch);border:3px solid var(--gold-deep);max-width:560px;width:100%;box-shadow:0 0 0 2px var(--navy-dark),8px 8px 0 rgba(0,0,0,.5);overflow:hidden;margin:auto;}
+.modal .mhead{padding:18px 22px;border-bottom:3px solid var(--gold-deep);color:var(--parch);position:relative;overflow:hidden;}
+.modal .mhead.navy{background:linear-gradient(180deg,var(--navy),var(--navy-deep));}
+.modal .mhead.good{background:linear-gradient(180deg,var(--good),var(--good-deep));}
+.modal .mhead.evil{background:linear-gradient(180deg,var(--evil),var(--evil-deep));}
+.modal .mhead.gold{background:linear-gradient(180deg,var(--gold),var(--gold-deep));color:#241a06;}
+.modal .mhead::before{content:"";position:absolute;inset:-60% -20%;background:repeating-conic-gradient(from 0deg at 50% 10%,rgba(255,240,200,.12) 0 7deg,transparent 7deg 14deg);}
+.modal .mhead>*{position:relative;}
+.modal .mhead h2{margin:0;font-size:25px;text-transform:uppercase;font-weight:700;letter-spacing:.02em;}
+.modal .mhead .ek{font-family:var(--util);font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.92;}
+.modal .mbody{padding:20px 22px;max-height:66vh;overflow:auto;}
+.modal .mbody p{margin:0 0 12px;}
+.modal .mfoot{padding:14px 22px 20px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+.loop{display:grid;gap:10px;margin:8px 0 4px;}
+.loopstep{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--parch-edge);padding:10px 12px;background:#fbf4de;}
+.loopstep .ln{font-family:var(--display);font-weight:700;font-size:22px;color:var(--gold-deep);line-height:1;width:26px;flex:none;}
+.loopstep .lt b{font-family:var(--display);text-transform:uppercase;letter-spacing:.02em;}
+.ref-table{width:100%;border-collapse:collapse;margin:8px 0;font-size:14px;}
+.ref-table th,.ref-table td{border:1px solid var(--parch-edge);padding:6px 8px;text-align:center;}
+.ref-table th{font-family:var(--util);text-transform:uppercase;font-size:10px;letter-spacing:.08em;background:rgba(199,160,52,.14);}
+.ref-role{display:flex;gap:10px;align-items:flex-start;border-top:1px dashed var(--parch-edge);padding:9px 0;}
+.ref-role .rn{font-family:var(--display);font-weight:700;text-transform:uppercase;min-width:92px;}
+.ref-role .rn.good-c{color:var(--good-deep);}.ref-role .rn.evil-c{color:var(--evil-deep);}
+.big-count{font-family:var(--display);font-size:52px;font-weight:700;text-align:center;line-height:1;}
+.big-count.fail{color:var(--evil-deep);}.big-count.success{color:var(--success-deep);}
+details{border:2px solid var(--parch-edge);background:#fbf4de;padding:10px 14px;margin-top:12px;}
+summary{cursor:pointer;font-family:var(--display);text-transform:uppercase;letter-spacing:.03em;}
+details p,details li{font-size:14px;}
+
+/* log */
+.logwrap{background:var(--parch);border:3px solid var(--gold-deep);box-shadow:0 0 0 2px var(--navy-dark),5px 5px 0 rgba(0,0,0,.35);margin:0 0 16px;}
+.logwrap .lh{font-family:var(--util);text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--gold-deep);font-weight:600;padding:10px 14px;border-bottom:2px solid var(--parch-edge);display:flex;justify-content:space-between;align-items:center;}
+.loglist{max-height:220px;overflow:auto;padding:4px 0;}
+.logrow{padding:5px 14px;font-size:13.5px;border-left:4px solid var(--parch-edge);}
+.logrow .lr{font-family:var(--util);font-size:10px;color:var(--ink-soft);letter-spacing:.05em;margin-right:8px;}
+.logrow.good{border-color:var(--good);}
+.logrow.evil,.logrow.reject{border-color:var(--evil);}
+.logrow.leader{border-color:var(--gold);}
+.logrow.win{border-color:var(--gold);background:rgba(199,160,52,.16);font-weight:600;}
+.logempty{padding:12px 14px;color:var(--ink-soft);font-size:13px;}
+.footer-note{color:rgba(243,231,200,.6);font-size:12px;text-align:center;margin-top:24px;font-family:var(--util);letter-spacing:.08em;text-transform:uppercase;}
+.rolesdump{color:var(--ink);}
+.rolesdump .grp{font-family:var(--util);text-transform:uppercase;letter-spacing:.1em;font-size:11px;margin:10px 0 4px;}
+.rolesdump .grp.good-c{color:var(--good-deep);}.rolesdump .grp.evil-c{color:var(--evil-deep);}
+@media(max-width:560px){.quest-head h3{font-size:18px;}.quest .qsize{font-size:21px;}.action h2{font-size:19px;}.big-name{font-size:24px;}.role-badge{font-size:30px;}}
+</style>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="crest"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 4.5 3.3 7.8 8 9 4.7-1.2 8-4.5 8-9V5l-8-3zm0 2.2 6 2.25V11c0 3.4-2.4 6-6 7.1V4.2z"/><path d="M12 6 9.8 10.4 5 11l3.5 3.4L7.7 19 12 16.7 16.3 19l-.8-4.6L19 11l-4.8-.6L12 6z" fill="var(--navy-dark)"/></svg></div>
+    <div class="sub">A hidden-loyalty game of quests &amp; treachery · 5 to 10 players</div>
+    <h1>Avalon</h1>
+    <div class="rule"></div>
+    <div class="sub">One shared screen is the whole game · no phones</div>
+  </div>
+
+  <!-- SETUP -->
+  <section id="setup">
+    <div class="panel">
+      <div class="eyebrow">Step 1 — Who sits at the Round Table? (seat them in order)</div>
+      <div class="row spread" style="margin-top:10px">
+        <div class="count-pills" id="countPills"></div>
+        <button class="btn ghost sm" id="clearNames">Clear names</button>
+      </div>
+      <div class="eyebrow" style="margin-top:16px">Optional special roles</div>
+      <div class="toggles" id="toggles"></div>
+      <div class="compo" id="compo"></div>
+      <div id="warnBox"></div>
+      <div class="names-grid" id="namesGrid"></div>
+      <div class="row" style="margin-top:4px">
+        <button class="btn" id="dealBtn">Deal the secret loyalties →</button>
+        <button class="btn ghost sm" id="howBtn">How it works</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVEAL -->
+  <section id="reveal" class="hidden">
+    <div class="reveal-stage">
+      <div id="revealGate">
+        <div class="eyebrow">Step 2 — The night phase, one player at a time</div>
+        <h2 style="font-size:26px;margin:10px 0">Pass the laptop around the table</h2>
+        <p style="max-width:470px;color:var(--parch)">Each player taps their own name, reads their loyalty and what they secretly know, then hides it and passes on. Do not peek at anyone else&rsquo;s card. This replaces the eyes-closed night.</p>
+        <div class="progress-dots" id="revealDots"></div>
+        <div id="revealButtons" class="reveal-buttons"></div>
+        <button class="btn gold hidden" id="toBoardBtn" style="margin-top:16px">Everyone has seen their card — begin the quests →</button>
+      </div>
+      <div id="revealOne" class="reveal-card hidden">
+        <div class="eyebrow" id="roPrompt">Tap to reveal</div>
+        <div class="big-name" id="roName"></div>
+        <div id="roReveal" class="hidden">
+          <div class="role-badge" id="roRole"></div>
+          <div class="team-line" id="roTeam"></div>
+          <ul class="know-list" id="roKnow"></ul>
+        </div>
+        <div style="margin-top:20px" class="row" id="roBtns"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOARD -->
+  <section id="board" class="hidden">
+    <div class="row spread">
+      <div class="eyebrow">The quest board · the laptop narrates</div>
+      <div class="toolbar">
+        <button class="btn ghost sm" id="loopBtn">How a round works</button>
+        <button class="btn ghost sm" id="refBtn">Roles &amp; quests</button>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <div class="stat"><div class="k">Current quest</div><div class="v" id="sQuest">1 / 5</div></div>
+      <div class="stat"><div class="k">Successes (Good)</div><div class="v good-c" id="sSucc">0 / 3</div></div>
+      <div class="stat"><div class="k">Fails (Evil)</div><div class="v evil-c" id="sFail">0 / 3</div></div>
+      <div class="stat"><div class="k">Leader</div><div class="v" id="sLeader">—</div></div>
+      <div class="stat"><div class="k">Rejections this quest</div><div class="track-dots" id="voteTrack"></div></div>
+    </div>
+
+    <div class="quest-plate">
+      <div class="quest-head"><h3>The Five Quests</h3><span class="tag" id="questTag">3 to win decides the realm</span></div>
+      <div class="quests" id="questTrack"></div>
+    </div>
+
+    <div class="eyebrow" style="margin-top:12px">The Round Table</div>
+    <div class="table-strip" id="tableStrip"></div>
+
+    <div class="action" id="actionPanel"></div>
+
+    <div class="logwrap">
+      <div class="lh"><span>Chronicle · public record</span><span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">no secrets shown</span></div>
+      <div class="loglist" id="gameLog"></div>
+    </div>
+
+    <div class="row">
+      <button class="btn ink sm" id="peekRoles">Reveal all loyalties</button>
+      <button class="btn ghost sm" id="undoBtn">Undo</button>
+      <button class="btn ghost sm" id="newGame">New game</button>
+    </div>
+    <div id="rolesDump" class="panel rolesdump hidden" style="margin-top:12px"></div>
+  </section>
+
+  <div class="footer-note">Fan-made digital board · for your own game nights</div>
+</div>
+<div id="modalMount"></div>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap">
+
+<script>
+"use strict";
+/* ============ ICONS ============ */
+const ICON={
+  sword:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 3.5 20 3l-.5 5.5L9 19l-2 2-2-2 2-2L14.5 3.5z"/><path d="M6 15l-3 3"/><path d="M8 17l-3 3"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 4.5 3.3 7.8 8 9 4.7-1.2 8-4.5 8-9V5l-8-3z"/></svg>',
+  grail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10"/><path d="M7 3c0 5 1.5 8 5 8s5-3 5-8"/><path d="M12 11v7"/><path d="M8 21h8"/><path d="M9 21c0-2 1.5-3 3-3s3 1 3 3"/></svg>',
+  crown:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 8l3.5 3L12 5l5.5 6L21 8l-1.5 10h-15L3 8z"/></svg>',
+  dagger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v13"/><path d="M8 15h8l-4 7-4-7z"/><path d="M8 7h8"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-11"/></svg>',
+  cross:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+};
+
+/* ============ GAME DATA ============ */
+const COMP={5:{good:3,evil:2},6:{good:4,evil:2},7:{good:4,evil:3},8:{good:5,evil:3},9:{good:6,evil:3},10:{good:6,evil:4}};
+const TEAM={5:[2,3,2,3,3],6:[2,3,4,3,4],7:[2,3,3,4,4],8:[3,4,4,5,5],9:[3,4,4,5,5],10:[3,4,4,5,5]};
+function teamSize(n,q){return TEAM[n][q-1];}
+function failReq(n,q){return (n>=7&&q===4)?2:1;}
+const EVIL=new Set(['assassin','morgana','mordred','oberon','minion']);
+function isEvil(r){return EVIL.has(r);}
+const ROLE_NAME={merlin:'Merlin',percival:'Percival',servant:'Loyal Servant of Arthur',assassin:'Assassin',morgana:'Morgana',mordred:'Mordred',oberon:'Oberon',minion:'Minion of Mordred'};
+const ROLE_DESC={
+  merlin:'Knows who serves Evil — but must hide it, for the Assassin hunts Merlin.',
+  percival:'Sees Merlin and Morgana as two names, not knowing which is the true seer.',
+  servant:'Knows nothing for certain. Must deduce loyalty from votes and quests.',
+  assassin:'Serves Evil. If Good wins three quests, names one player as Merlin to steal the win.',
+  morgana:'Serves Evil. Appears as Merlin to Percival, sowing doubt.',
+  mordred:'Serves Evil. Hidden even from Merlin.',
+  oberon:'Serves Evil alone — unknown to the other Evil, and they are unknown to him.',
+  minion:'Serves Evil. Knows the others of Evil (save Oberon).',
+};
+
+/* ============ STATE ============ */
+let S=null;
+let selCount=5;
+let opts={percival:false,morgana:false,mordred:false,oberon:false};
+const el=id=>document.getElementById(id);
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function evilSpecialsCount(){return (opts.morgana?1:0)+(opts.mordred?1:0)+(opts.oberon?1:0);}
+function goodSpecialsCount(){return (opts.percival?1:0);}
+function compoValid(){const c=COMP[selCount];return evilSpecialsCount()<=c.evil-1 && goodSpecialsCount()<=c.good-1;}
+
+function freshState(count,names,options){return{
+  v:1,phase:'board',count,names:names.slice(),options:Object.assign({},options),
+  order:names.map((_,i)=>i),
+  roles:[],seen:[],
+  leaderPos:0,
+  quest:1,questResults:[],
+  voteTrack:0,
+  proposedTeam:[],votes:{},lastVote:null,
+  questPlays:{},questPlayOrder:[],questPlayPos:0,questReveal:null,
+  step:'propose',winner:null,winReason:'',
+  history:[],introSeen:false,log:[],
+};}
+function logEvent(t,k){if(!S.log)S.log=[];S.log.push({t,k,q:S.quest});}
+
+/* ============ SETUP SCREEN ============ */
+function renderCountPills(){const h=el('countPills');h.innerHTML='';[5,6,7,8,9,10].forEach(n=>{const b=document.createElement('button');b.textContent=n;b.setAttribute('aria-pressed',n===selCount);b.onclick=()=>{selCount=n;clampOpts();renderAll();};h.appendChild(b);});}
+function clampOpts(){const c=COMP[selCount];
+  // keep evil specials within budget, trimming extras in a fixed order
+  const order=['oberon','mordred','morgana'];let budget=c.evil-1;let active=order.filter(k=>opts[k]);
+  if(active.length>budget){let keep=active.slice(0,budget);order.forEach(k=>{if(opts[k]&&keep.indexOf(k)<0)opts[k]=false;});}
+}
+function renderToggles(){const h=el('toggles');h.innerHTML='';const c=COMP[selCount];
+  const defs=[['percival','good','Percival'],['morgana','evil','Morgana'],['mordred','evil','Mordred'],['oberon','evil','Oberon']];
+  defs.forEach(([key,side,label])=>{const b=document.createElement('button');b.className=side;b.textContent=label;b.setAttribute('aria-pressed',!!opts[key]);
+    // disable an evil toggle that cannot fit unless already on
+    let disabled=false;
+    if(side==='evil'&&!opts[key]&&evilSpecialsCount()>=c.evil-1)disabled=true;
+    b.disabled=disabled;
+    b.onclick=()=>{opts[key]=!opts[key];clampOpts();renderAll();};
+    h.appendChild(b);});
+}
+function renderCompo(){const c=COMP[selCount];
+  const goodSpecials=['Merlin'].concat(opts.percival?['Percival']:[]);
+  const servants=c.good-goodSpecials.length;
+  const evilSpecials=['Assassin'].concat(opts.morgana?['Morgana']:[],opts.mordred?['Mordred']:[],opts.oberon?['Oberon']:[]);
+  const minions=c.evil-evilSpecials.length;
+  const goodList=goodSpecials.concat(servants>0?[servants+' Loyal Servant'+(servants>1?'s':'')]:[]);
+  const evilList=evilSpecials.concat(minions>0?[minions+' Minion'+(minions>1?'s':'')]:[]);
+  el('compo').innerHTML=`<span class="good-c"><b>${c.good} Good:</b> ${goodList.join(', ')}</span><span class="evil-c"><b>${c.evil} Evil:</b> ${evilList.join(', ')}</span>`;
+}
+function renderWarn(){const h=el('warnBox');const c=COMP[selCount];
+  let msgs=[];
+  if(!compoValid())msgs.push('Too many special Evil roles for a '+selCount+'-player game (only '+(c.evil)+' Evil seats). Turn some off.');
+  if(opts.percival&&!opts.morgana)msgs.push('Tip: Percival is usually paired with Morgana, or he simply sees Merlin alone.');
+  h.innerHTML=msgs.map((m,i)=>`<div class="warn" ${i===0&&!compoValid()?'':'style="border-color:var(--gold);color:var(--gold-deep);background:rgba(199,160,52,.12)"'}>${m}</div>`).join('');
+}
+function renderNameInputs(){const g=el('namesGrid');const prev=[...g.querySelectorAll('input')].map(i=>i.value);g.innerHTML='';for(let i=0;i<selCount;i++){const row=document.createElement('div');row.className='name-row';row.innerHTML=`<span class="idx">${i+1}</span>`;const inp=document.createElement('input');inp.type='text';inp.placeholder='Player '+(i+1);inp.value=prev[i]||'';inp.id='nm'+i;inp.autocomplete='off';row.appendChild(inp);g.appendChild(row);}}
+function renderAll(){renderCountPills();renderToggles();renderCompo();renderWarn();renderNameInputs();el('dealBtn').disabled=!compoValid();}
+el('clearNames').onclick=()=>document.querySelectorAll('#namesGrid input').forEach(i=>i.value='');
+el('howBtn').onclick=()=>showLoopModal(true);
+
+function dealRoles(){
+  if(!compoValid())return;
+  const names=[];for(let i=0;i<selCount;i++){const v=el('nm'+i).value.trim();names.push(v||('Player '+(i+1)));}
+  const c=COMP[selCount];let pool=[];
+  pool.push('merlin');let good=c.good-1;
+  if(opts.percival){pool.push('percival');good--;}
+  for(;good>0;good--)pool.push('servant');
+  pool.push('assassin');let evil=c.evil-1;
+  if(opts.morgana){pool.push('morgana');evil--;}
+  if(opts.mordred){pool.push('mordred');evil--;}
+  if(opts.oberon){pool.push('oberon');evil--;}
+  for(;evil>0;evil--)pool.push('minion');
+  pool=shuffle(pool);
+  S=freshState(selCount,names,opts);S.roles=pool;S.seen=names.map(()=>false);S.phase='reveal';
+  save();showPhase();
+}
+el('dealBtn').onclick=dealRoles;
+
+/* ============ REVEAL ============ */
+function renderRevealGate(){
+  const d=el('revealDots');d.innerHTML='';S.seen.forEach(done=>{const x=document.createElement('div');x.className='dot'+(done?' done':'');d.appendChild(x);});
+  const b=el('revealButtons');b.innerHTML='';
+  S.names.forEach((nm,i)=>{const btn=document.createElement('button');btn.className='btn '+(S.seen[i]?'ghost':'gold');btn.textContent=(S.seen[i]?'✓ ':'')+nm;btn.disabled=S.seen[i];btn.onclick=()=>openReveal(i);b.appendChild(btn);});
+  el('toBoardBtn').classList.toggle('hidden',!S.seen.every(Boolean));
+}
+function openReveal(i){el('revealGate').classList.add('hidden');const c=el('revealOne');c.classList.remove('hidden');el('roName').textContent=S.names[i];el('roPrompt').textContent='Make sure nobody else can see the screen';el('roReveal').classList.add('hidden');const btns=el('roBtns');btns.innerHTML='';const show=document.createElement('button');show.className='btn gold';show.textContent='Reveal my loyalty';show.onclick=()=>doReveal(i);btns.appendChild(show);}
+
+function knowledgeLines(i){
+  const r=S.roles[i];const lines=[];const nm=j=>S.names[j];
+  const idxs=S.names.map((_,j)=>j);
+  const names=arr=>shuffle(arr.map(nm)).join(', ');
+  const add=(k,t)=>lines.push(`<span class="kl">${k}</span>${t}`);
+  if(r==='merlin'){
+    const seen=idxs.filter(j=>isEvil(S.roles[j])&&S.roles[j]!=='mordred');
+    add('Servants of Evil, revealed to you',seen.length?`<b>${names(seen)}</b>`:'<b>none visible</b>');
+    if(S.options.mordred)add('Beware','One Evil (Mordred) hides from your sight.');
+    lines.push('<span class="muted">You see loyalty, not roles. Guide Good to victory — but hide, or the Assassin will find you.</span>');
+  }else if(r==='percival'){
+    const pair=idxs.filter(j=>S.roles[j]==='merlin'||S.roles[j]==='morgana');
+    if(pair.length>1)add('Merlin is one of these two',`<b>${names(pair)}</b> — you cannot tell which. The other is Morgana, a deceiver.`);
+    else add('Merlin is',`<b>${names(pair)}</b>`);
+    lines.push('<span class="muted">Protect the true Merlin; follow his lead without exposing him.</span>');
+  }else if(r==='oberon'){
+    add('You are alone','The other Servants of Evil do not know you, and you do not know them.');
+    lines.push('<span class="muted">Still, you win when Evil wins. Fail quests and read the table.</span>');
+  }else if(isEvil(r)){
+    const mates=idxs.filter(j=>j!==i&&isEvil(S.roles[j])&&S.roles[j]!=='oberon');
+    add('Your fellow Servants of Evil',mates.length?`<b>${names(mates)}</b>`:'<b>none visible</b>');
+    if(S.options.oberon)lines.push('<span class="muted">Oberon also serves Evil, but is hidden from you.</span>');
+    lines.push('<span class="muted">You all know each other (save Oberon). Fail quests, and keep your mask on.</span>');
+  }else{ // loyal servant
+    lines.push('<span class="muted">You know nothing for certain. Deduce loyalty from how others vote and quest.</span>');
+  }
+  return lines;
+}
+function doReveal(i){
+  const r=S.roles[i];const good=!isEvil(r);
+  el('roReveal').classList.remove('hidden');el('roPrompt').textContent='Your secret card';
+  const b=el('roRole');b.textContent=ROLE_NAME[r];b.className='role-badge '+(good?'role-good':'role-evil');
+  const t=el('roTeam');t.textContent=good?'Loyal to Arthur · Good':'Servant of Mordred · Evil';t.className='team-line '+(good?'team-good':'team-evil');
+  const know=el('roKnow');know.innerHTML='';
+  const desc=document.createElement('li');desc.innerHTML=`<span class="kl">Your charge</span>${ROLE_DESC[r]}`;know.appendChild(desc);
+  knowledgeLines(i).forEach(h=>{const li=document.createElement('li');li.innerHTML=h;know.appendChild(li);});
+  const btns=el('roBtns');btns.innerHTML='';const done=document.createElement('button');done.className='btn';done.textContent='Hide & pass on';done.onclick=()=>{S.seen[i]=true;save();el('revealOne').classList.add('hidden');el('revealGate').classList.remove('hidden');renderRevealGate();};btns.appendChild(done);
+}
+el('toBoardBtn').onclick=()=>startGame();
+
+/* ============ GAME LOOP ============ */
+function startGame(){
+  S.phase='board';S.leaderPos=Math.floor(Math.random()*S.order.length);S.step='propose';S.proposedTeam=[];S.votes={};
+  logEvent(`${S.names[leaderIdx()]} is the first Leader.`,'leader');
+  save();showPhase();
+  if(!S.introSeen){S.introSeen=true;save();showLoopModal(false);}
+}
+function leaderIdx(){return S.order[S.leaderPos];}
+function advanceLeader(){S.leaderPos=(S.leaderPos+1)%S.order.length;}
+function successCount(){return S.questResults.filter(x=>x==='success').length;}
+function failCount(){return S.questResults.filter(x=>x==='fail').length;}
+
+/* ----- board render ----- */
+function renderBoard(){
+  const succ=successCount(),fl=failCount();
+  el('sQuest').textContent=(S.winner?Math.min(S.quest,5):S.quest)+' / 5';
+  el('sSucc').textContent=succ+' / 3';el('sFail').textContent=fl+' / 3';
+  el('sLeader').textContent=S.winner?'—':S.names[leaderIdx()];
+  const vt=el('voteTrack');vt.innerHTML='';for(let i=0;i<5;i++){const x=document.createElement('div');x.className='td'+(i<S.voteTrack?' on':'')+(i===4?' hammer':'');vt.appendChild(x);}
+  renderQuests();renderTable();renderAction();renderLog();
+  el('undoBtn').disabled=S.history.length===0;
+}
+function renderQuests(){
+  const host=el('questTrack');host.innerHTML='';
+  for(let q=1;q<=5;q++){
+    const size=teamSize(S.count,q);const req=failReq(S.count,q);
+    const res=S.questResults[q-1];const isCurrent=!S.winner&&q===S.quest&&!res;
+    const d=document.createElement('div');d.className='quest'+(res?(' '+res):'')+(isCurrent?' current':'');
+    let inner=`<span class="qn">Q${q}</span>`;
+    if(res){inner+=`<span class="qmark">${res==='success'?ICON.shield:ICON.dagger}</span>`;}
+    else{inner+=`<span class="qsize">${size}</span><span class="qlab">on team</span>`;}
+    if(req===2)inner+=`<span class="q2">2 fails needed</span>`;
+    d.innerHTML=inner;host.appendChild(d);
+  }
+}
+function renderTable(){
+  const strip=el('tableStrip');strip.innerHTML='';
+  S.order.forEach(i=>{
+    const seat=document.createElement('div');seat.className='seat';
+    let badges='';
+    if(i===leaderIdx()&&!S.winner)badges+='<span class="bdg leader">Leader</span>';
+    if(S.proposedTeam.includes(i)&&(S.step==='vote'||S.step==='propose'))badges+='<span class="bdg team">On quest</span>';
+    seat.innerHTML=`<div class="nm">${S.names[i]}</div><div class="badges">${badges}</div>`;
+    strip.appendChild(seat);
+  });
+}
+function renderLog(){
+  const host=el('gameLog');if(!host)return;host.innerHTML='';
+  const log=S.log||[];
+  if(!log.length){host.innerHTML='<div class="logempty">No deeds yet. The chronicle fills with proposals, votes, quest results and the passing of leadership — public facts only.</div>';return;}
+  log.forEach(e=>{const row=document.createElement('div');row.className='logrow '+(e.k||'');row.innerHTML=`<span class="lr">Q${e.q}</span>${e.t}`;host.appendChild(row);});
+  host.scrollTop=host.scrollHeight;
+}
+
+/* ----- action panel (state machine) ----- */
+function btn(label,cls,fn,dis){const b=document.createElement('button');b.className='btn '+(cls||'');b.textContent=label;if(dis)b.disabled=true;else b.onclick=fn;return b;}
+function reminder(html){return `<div class="reminder">${html}</div>`;}
+
+function renderAction(){
+  const ap=el('actionPanel');ap.innerHTML='';
+  if(S.winner){
+    const good=S.winner==='good';
+    ap.innerHTML=`<div class="lead">The realm is decided</div><h2>${good?'Good triumphs':'Evil triumphs'}</h2><p>${S.winReason||''}</p>`;
+    ap.appendChild(btn('Reveal all loyalties','gold',dumpRoles));
+    return;
+  }
+  const L=leaderIdx();
+  switch(S.step){
+    case 'propose':{
+      const size=teamSize(S.count,S.quest);const req=failReq(S.count,S.quest);
+      ap.innerHTML=`<div class="lead">Quest ${S.quest} · Proposal (rejections ${S.voteTrack} / 5)</div><h2>Leader ${S.names[L]}, choose ${size} for the quest</h2>`+
+        reminder(`Discuss, then the Leader taps <b>${size}</b> player${size>1?'s':''} to send. The Leader may include themselves.${req===2?' <b>This quest needs 2 Fail cards to fail.</b>':''} All players then vote to approve the team.`);
+      const grid=document.createElement('div');grid.className='table-strip';
+      S.order.forEach(i=>{const on=S.proposedTeam.includes(i);const s=document.createElement('div');s.className='seat pick'+(on?' on':'');
+        s.innerHTML=`<div class="nm">${S.names[i]}</div><div class="badges">${i===L?'<span class="bdg leader">Leader</span>':''}</div>`;
+        s.onclick=()=>{const t=S.proposedTeam.slice();const k=t.indexOf(i);if(k>=0)t.splice(k,1);else{if(t.length>=size)return;t.push(i);}S.proposedTeam=t;save();renderBoard();};
+        grid.appendChild(s);});
+      ap.appendChild(grid);
+      const bar=document.createElement('div');bar.className='actbtns';
+      const note=document.createElement('span');note.className='count-note';note.textContent=`${S.proposedTeam.length} / ${size} chosen`;
+      bar.appendChild(note);
+      bar.appendChild(btn('Propose this team →','gold',()=>{pushHistory();S.step='vote';S.votes={};save();renderBoard();},S.proposedTeam.length!==size));
+      ap.appendChild(bar);
+      break;
+    }
+    case 'vote':{
+      ap.innerHTML=`<div class="lead">Quest ${S.quest} · Vote on the team</div><h2>${S.proposedTeam.map(i=>S.names[i]).join(', ')}</h2>`+
+        reminder(`<b>Every player votes</b> Approve or Reject — votes are public. A strict majority of Approve sends the team. A tie or more Reject passes leadership on and advances the rejection track. <b>5 rejections in a row on this quest = Evil wins.</b>`);
+      const grid=document.createElement('div');grid.className='vote-grid';
+      S.order.forEach(i=>{
+        const v=document.createElement('div');v.className='voter';const val=S.votes[i];
+        v.innerHTML=`<div class="vn">${S.names[i]}</div>`;
+        const vb=document.createElement('div');vb.className='vb';
+        const ya=document.createElement('button');ya.className='yes';ya.textContent='Approve';ya.setAttribute('aria-pressed',val===true);ya.onclick=()=>{S.votes[i]=true;save();renderBoard();};
+        const no=document.createElement('button');no.className='no';no.textContent='Reject';no.setAttribute('aria-pressed',val===false);no.onclick=()=>{S.votes[i]=false;save();renderBoard();};
+        vb.appendChild(ya);vb.appendChild(no);v.appendChild(vb);grid.appendChild(v);
+      });
+      ap.appendChild(grid);
+      const all=S.order.every(i=>S.votes[i]!==undefined);
+      const yes=S.order.filter(i=>S.votes[i]===true).length;
+      const info=document.createElement('div');info.className='tally';info.textContent=`Approve ${yes} · Reject ${S.order.filter(i=>S.votes[i]===false).length} · needed ${Math.floor(S.order.length/2)+1}`;
+      ap.appendChild(info);
+      const bar=document.createElement('div');bar.className='actbtns';
+      bar.appendChild(btn('Tally & resolve','gold',resolveVote,!all));
+      ap.appendChild(bar);
+      break;
+    }
+    case 'quest-handoff':{
+      const m=S.questPlayOrder[S.questPlayPos];
+      ap.innerHTML=`<div class="lead">Quest ${S.quest} · The team acts in secret (${S.questPlayPos+1} of ${S.questPlayOrder.length})</div><h2>Pass the laptop to ${S.names[m]}</h2>`+
+        reminder(`Only a member of the quest touches the laptop. Everyone else, look away. Cards are shuffled, so no one learns who played what.`);
+      const bar=document.createElement('div');bar.className='actbtns';
+      bar.appendChild(btn(`I am ${S.names[m]} — play my card`,'gold',()=>{S.step='quest-play';save();renderBoard();}));
+      ap.appendChild(bar);
+      break;
+    }
+    case 'quest-play':{
+      const m=S.questPlayOrder[S.questPlayPos];const good=!isEvil(S.roles[m]);
+      ap.innerHTML=`<div class="lead">${S.names[m]} · in secret</div><h2>Play Success or Fail</h2>`+
+        reminder(good?`You serve <b>Good</b>. You must play <b>Success</b>.`:`You serve <b>Evil</b>. Play either card. A Fail may expose you — choose your moment.`);
+      const cards=document.createElement('div');cards.className='quest-cards';
+      const sc=document.createElement('div');sc.className='qcard success';sc.innerHTML=`<div class="qi">${ICON.shield}</div><div class="ql">Success</div>`;sc.onclick=()=>playQuestCard(m,'success');cards.appendChild(sc);
+      const fc=document.createElement('div');fc.className='qcard fail'+(good?' disabled':'');fc.innerHTML=`<div class="qi">${ICON.dagger}</div><div class="ql">Fail</div>`;if(!good)fc.onclick=()=>playQuestCard(m,'fail');cards.appendChild(fc);
+      ap.appendChild(cards);
+      if(good){const n=document.createElement('div');n.className='count-note';n.textContent='Good may not sabotage a quest — only Success is allowed.';ap.appendChild(n);}
+      break;
+    }
+    case 'quest-reveal':{
+      ap.innerHTML=`<div class="lead">Quest ${S.quest} · All cards are in</div><h2>Reveal the outcome</h2>`+
+        reminder(`The ${S.questPlayOrder.length} cards are shuffled. Only the number of Fails is shown — never who played them.`);
+      const bar=document.createElement('div');bar.className='actbtns';bar.appendChild(btn('Reveal the quest result','gold',resolveQuest));ap.appendChild(bar);
+      break;
+    }
+    case 'assassin-pass':{
+      const a=S.roles.indexOf('assassin');
+      ap.innerHTML=`<div class="lead">Good has won three quests</div><h2>The Assassin steps forward: ${S.names[a]}</h2>`+
+        reminder(`Evil may still win. The Assassin now names the player they believe is <b>Merlin</b>. If correct, Evil steals the victory. Evil may confer aloud first.`);
+      const bar=document.createElement('div');bar.className='actbtns';bar.appendChild(btn(`I am ${S.names[a]} — name Merlin`,'evil',()=>{S.step='assassin-pick';save();renderBoard();}));ap.appendChild(bar);
+      break;
+    }
+    case 'assassin-pick':{
+      ap.innerHTML=`<div class="lead">Assassination</div><h2>Name the one you believe is Merlin</h2>`+
+        reminder(`Tap a player. If that player is truly Merlin, <b>Evil wins</b>. Otherwise, Good holds the realm.`);
+      const grid=document.createElement('div');grid.className='table-strip';
+      S.order.forEach(i=>{const s=document.createElement('div');s.className='seat pick';s.innerHTML=`<div class="nm">${S.names[i]}</div><div class="badges"></div>`;s.onclick=()=>resolveAssassination(i);grid.appendChild(s);});
+      ap.appendChild(grid);
+      break;
+    }
+  }
+}
+
+function playQuestCard(m,val){pushHistory();S.questPlays[m]=val;S.questPlayPos++;
+  if(S.questPlayPos>=S.questPlayOrder.length)S.step='quest-reveal';else S.step='quest-handoff';
+  save();renderBoard();}
+
+/* ----- resolve ----- */
+function resolveVote(){
+  const n=S.order.length;const yes=S.order.filter(i=>S.votes[i]===true).length;
+  const pass=yes*2>n;
+  S.lastVote={approve:S.order.filter(i=>S.votes[i]===true).map(i=>S.names[i]),reject:S.order.filter(i=>S.votes[i]===false).map(i=>S.names[i])};
+  const teamNames=S.proposedTeam.map(i=>S.names[i]).join(', ');
+  logEvent(`${S.names[leaderIdx()]} proposed [${teamNames}] · Approve ${yes}/${n} · <b>${pass?'sent':'rejected'}</b>`,pass?'good':'reject');
+  if(pass){
+    S.voteTrack=0;
+    S.questPlayOrder=shuffle(S.proposedTeam.slice());S.questPlayPos=0;S.questPlays={};S.step='quest-handoff';save();renderBoard();
+    modalShell('good','Team approved','The quest sets out',
+      `<p>The table sent <b>${teamNames}</b> on Quest ${S.quest} (Approve ${yes} / ${n}).</p>`+
+      votePartyHTML()+
+      `<p class="muted">Now pass the laptop to each member in turn to secretly play Success or Fail. Good must play Success; Evil may play either.</p>`,
+      btnHTML('gold','Begin the quest','closeModal()'));
+    return;
+  }
+  // rejected
+  S.voteTrack++;
+  if(S.voteTrack>=5){
+    S.winner='evil';S.winReason='Five teams in a row were rejected on Quest '+S.quest+'. The realm descends into chaos — Evil wins.';
+    logEvent('Evil wins — five rejected proposals in a row','win');save();renderBoard();
+    showWin('evil',S.winReason);return;
+  }
+  advanceLeader();S.proposedTeam=[];S.votes={};S.step='propose';save();renderBoard();
+  logEvent(`Leadership passes to ${S.names[leaderIdx()]} (rejections ${S.voteTrack}/5)`,'leader');save();renderBoard();
+  modalShell('navy','Team rejected','Leadership passes on',
+    `<p>The team was voted down (Approve ${yes} / ${n}).</p>`+votePartyHTML()+
+    `<p class="muted">The rejection track advances to <b>${S.voteTrack} / 5</b> and leadership passes to <b>${S.names[leaderIdx()]}</b>. Five rejections in a row on one quest hands the win to Evil.</p>`,
+    btnHTML('gold','Next proposal','closeModal()'));
+}
+function votePartyHTML(){
+  if(!S.lastVote)return '';
+  return `<p style="font-size:14px"><b style="color:var(--good-deep)">Approve:</b> ${S.lastVote.approve.join(', ')||'—'}<br><b style="color:var(--evil-deep)">Reject:</b> ${S.lastVote.reject.join(', ')||'—'}</p>`;
+}
+
+function resolveQuest(){
+  const members=S.questPlayOrder;
+  const fails=members.filter(m=>S.questPlays[m]==='fail').length;
+  const req=failReq(S.count,S.quest);
+  const failed=fails>=req;
+  S.questResults[S.quest-1]=failed?'fail':'success';
+  logEvent(`Quest ${S.quest} ${failed?'<b>FAILED</b>':'<b>succeeded</b>'} — ${fails} Fail${fails===1?'':'s'} of ${req} needed`,failed?'evil':'good');
+  save();renderBoard();
+  const succ=successCount(),fl=failCount();
+  const body=`<div class="big-count ${failed?'fail':'success'}">${fails}</div>`+
+    `<p style="text-align:center;margin-top:4px">Fail card${fails===1?'':'s'} played — <b>${req}</b> needed to fail this quest.</p>`+
+    `<p style="text-align:center">Tally: <b class="good-c" style="color:var(--good-deep)">${succ} success</b> &middot; <b class="evil-c" style="color:var(--evil-deep)">${fl} fail</b></p>`;
+  if(succ>=3){
+    S.step='assassin-pass';save();renderBoard();
+    modalShell('good','Quest '+S.quest+' succeeded','Good has won three quests',
+      body+`<p class="muted">The quests are won — but Evil has one last stroke. The Assassin may now name Merlin to steal the game.</p>`,
+      btnHTML('gold','To the assassination','closeModal()'));
+    return;
+  }
+  if(fl>=3){
+    S.winner='evil';S.winReason='Three quests failed. Mordred’s servants have corrupted the realm — Evil wins.';
+    logEvent('Evil wins — three failed quests','win');save();renderBoard();
+    showWin('evil',S.winReason);return;
+  }
+  // next quest
+  S.quest++;S.voteTrack=0;advanceLeader();S.proposedTeam=[];S.votes={};S.questPlays={};S.questPlayOrder=[];S.questPlayPos=0;S.step='propose';save();renderBoard();
+  logEvent(`Leadership passes to ${S.names[leaderIdx()]} for Quest ${S.quest}`,'leader');save();renderBoard();
+  modalShell(failed?'evil':'good','Quest '+(S.quest-1)+(failed?' failed':' succeeded'),failed?'A quest falls to Evil':'A quest is won for Good',
+    body+`<p class="muted">On to Quest ${S.quest}. Leadership passes to <b>${S.names[leaderIdx()]}</b>.</p>`,
+    btnHTML('gold','Continue','closeModal()'));
+}
+
+function resolveAssassination(target){
+  pushHistory();
+  const correct=S.roles[target]==='merlin';
+  const a=S.roles.indexOf('assassin');
+  if(correct){
+    S.winner='evil';S.winReason=`The Assassin (${S.names[a]}) named ${S.names[target]} as Merlin — and was right. Evil snatches victory from the jaws of defeat.`;
+    logEvent(`Evil wins — ${S.names[target]} was Merlin, named by the Assassin`,'win');
+  }else{
+    S.winner='good';S.winReason=`The Assassin (${S.names[a]}) named ${S.names[target]}, who was ${ROLE_NAME[S.roles[target]]}, not Merlin. Good keeps the realm.`;
+    logEvent(`Good wins — the Assassin missed Merlin`,'win');
+  }
+  save();renderBoard();showWin(S.winner,S.winReason);
+}
+
+/* ============ MODALS ============ */
+function mount(h){el('modalMount').innerHTML=h;}
+function closeModal(){el('modalMount').innerHTML='';}
+function btnHTML(cls,label,call){return `<button class="btn ${cls}" onclick="${call}">${label}</button>`;}
+function modalShell(headClass,eyebrow,title,body,foot){mount(`<div class="scrim"><div class="modal"><div class="mhead ${headClass}"><div class="ek">${eyebrow}</div><h2>${title}</h2></div><div class="mbody">${body}</div><div class="mfoot">${foot}</div></div></div>`);}
+function showWin(side,reason){const head=side==='good'?'good':'evil';modalShell(head,'The realm is decided',side==='good'?'Good triumphs':'Evil triumphs',`<p>${reason}</p><p class="muted">Reveal all loyalties to see who served whom.</p>`,btnHTML('gold','Reveal loyalties','closeModal();dumpRoles()')+btnHTML('ghost','Close','closeModal()'));}
+
+function showLoopModal(fromSetup){
+  const body=`
+  <div class="loop">
+    <div class="loopstep"><div class="ln">1</div><div class="lt"><b>Propose.</b> The Leader taps the required number of players to send on the quest, then proposes the team.</div></div>
+    <div class="loopstep"><div class="ln">2</div><div class="lt"><b>Vote.</b> Everyone votes Approve or Reject, out loud and on screen. A majority of Approve sends the team. A tie or more Reject passes leadership clockwise and ticks the rejection track — five in a row and Evil wins.</div></div>
+    <div class="loopstep"><div class="ln">3</div><div class="lt"><b>Quest.</b> Each team member takes the laptop in turn and secretly plays Success or Fail. Good must play Success; Evil may play either. Cards are shuffled and only the number of Fails is shown.</div></div>
+    <div class="loopstep"><div class="ln">4</div><div class="lt"><b>Resolve.</b> One Fail fails the quest — except the 4th quest with 7+ players, which needs two. First side to three quests wins.</div></div>
+  </div>
+  <p class="muted">If Good wins three quests, the <b>Assassin</b> gets one guess at who is Merlin. Guess right and Evil wins instead.</p>
+  <p class="muted">The laptop deals loyalties, runs every vote, shuffles the quest cards, and pops up each rule — so no phones are needed. The only honour-system part is not peeking when the laptop is passed.</p>`;
+  modalShell('gold','How to play','A round, start to finish',body,btnHTML('gold',fromSetup?'Got it':'Begin',(fromSetup?'closeModal()':'closeModal()')));
+}
+el('loopBtn').onclick=()=>showLoopModal(false);
+el('refBtn').onclick=showRefModal;
+function showRefModal(){
+  const n=S?S.count:selCount;const c=COMP[n];const o=S?S.options:opts;
+  let rows='';for(let q=1;q<=5;q++){rows+=`<td>${teamSize(n,q)}${failReq(n,q)===2?'*':''}</td>`;}
+  const inPlay=[['merlin','good'],o.percival?['percival','good']:null,['assassin','evil'],o.morgana?['morgana','evil']:null,o.mordred?['mordred','evil']:null,o.oberon?['oberon','evil']:null].filter(Boolean);
+  const servants=c.good-(1+(o.percival?1:0));const minions=c.evil-(1+(o.morgana?1:0)+(o.mordred?1:0)+(o.oberon?1:0));
+  let roleRows=inPlay.map(([r,side])=>`<div class="ref-role"><div class="rn ${side==='good'?'good-c':'evil-c'}">${ROLE_NAME[r]}</div><div>${ROLE_DESC[r]}</div></div>`).join('');
+  if(servants>0)roleRows+=`<div class="ref-role"><div class="rn good-c">Servants ×${servants}</div><div>${ROLE_DESC.servant}</div></div>`;
+  if(minions>0)roleRows+=`<div class="ref-role"><div class="rn evil-c">Minions ×${minions}</div><div>${ROLE_DESC.minion}</div></div>`;
+  modalShell('navy','Reference · '+n+' players','Roles &amp; quest sizes',
+    `<p><b class="good-c" style="color:var(--good-deep)">${c.good} Good</b> vs <b class="evil-c" style="color:var(--evil-deep)">${c.evil} Evil.</b> First side to win three quests takes the realm.</p>`+
+    `<table class="ref-table"><tr><th>Quest</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr><tr><th>On team</th>${rows}</tr></table>`+
+    `<p class="muted" style="font-size:13px">* The 4th quest (7+ players) needs <b>two</b> Fail cards to fail. All others fail on one.</p>`+
+    `<div style="margin-top:8px">${roleRows}</div>`,
+    btnHTML('gold','Close','closeModal()'));
+}
+
+/* ============ end-game roles ============ */
+function dumpRoles(){
+  const host=el('rolesDump');host.classList.remove('hidden');
+  const good=S.names.map((nm,i)=>({nm,r:S.roles[i]})).filter(x=>!isEvil(x.r));
+  const evil=S.names.map((nm,i)=>({nm,r:S.roles[i]})).filter(x=>isEvil(x.r));
+  const line=x=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-top:1px dashed var(--parch-edge)"><span>${x.nm}</span><b style="font-family:var(--display);text-transform:uppercase">${ROLE_NAME[x.r]}</b></div>`;
+  host.innerHTML='<div class="eyebrow">Loyalties revealed</div>'+
+    '<div class="grp good-c">Good · Loyal to Arthur</div>'+good.map(line).join('')+
+    '<div class="grp evil-c">Evil · Servants of Mordred</div>'+evil.map(line).join('');
+  host.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+el('peekRoles').onclick=dumpRoles;
+el('newGame').onclick=()=>{S=null;try{localStorage.removeItem(KEY);}catch(e){}el('rolesDump').classList.add('hidden');el('rolesDump').innerHTML='';selCount=5;opts={percival:false,morgana:false,mordred:false,oberon:false};renderAll();showPhase();};
+
+/* ============ undo ============ */
+function pushHistory(){const c=Object.assign({},S);delete c.history;S.history.push(JSON.stringify(c));if(S.history.length>60)S.history.shift();}
+el('undoBtn').onclick=()=>{if(!S.history.length)return;const snap=JSON.parse(S.history.pop());const h=S.history;S=snap;S.history=h;closeModal();save();renderBoard();};
+
+/* ============ phase ============ */
+function showPhase(){const phase=S?S.phase:'setup';el('setup').classList.toggle('hidden',phase!=='setup');el('reveal').classList.toggle('hidden',phase!=='reveal');el('board').classList.toggle('hidden',phase!=='board');if(phase==='reveal')renderRevealGate();if(phase==='board')renderBoard();}
+
+/* ============ persistence ============ */
+const KEY='avalon-board-v1';
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function load(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+function boot(initial){S=(initial&&initial.S)?initial.S:load();if(S&&S.options)opts=Object.assign({percival:false,morgana:false,mordred:false,oberon:false},S.options);renderAll();if(S&&S.phase){selCount=S.count;showPhase();}else showPhase();}
+if(window.claude&&window.claude.hot){window.claude.hot.snapshot(()=>({S}));window.claude.hot.ready?window.claude.hot.ready(d=>boot(d)):boot(window.claude.hot.data||{});}else boot({});
+</script>

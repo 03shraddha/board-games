@@ -1,0 +1,591 @@
+<title>Spyfall</title>
+<style>
+/* Committed look: a cold-war classified dossier, played on one shared screen.
+   Palette: --bg near-black teal, --panel dark teal, --ink bone, --orange accent, redaction stripes. */
+:root{
+  --bg:#0a1416; --bg-2:#0d1c1f; --panel:#102528; --panel-2:#143035; --edge:#2a4a4c;
+  --ink:#ece7d6; --ink-soft:#8ba6a2; --ink-dim:#5f7b78;
+  --teal:#157a73; --teal-deep:#0e4f4a; --teal-dark:#0a2c2a;
+  --orange:#f47a1f; --orange-deep:#c25810; --orange-dark:#7a3608;
+  --red:#d2412a; --red-deep:#9a2817;
+  --bone:#ece7d6; --stamp:#d2412a;
+  color-scheme:dark;
+  --display:"Saira Condensed","Arial Narrow",system-ui,sans-serif;
+  --mono:"Share Tech Mono",ui-monospace,monospace;
+  --body:"Barlow",system-ui,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;color:var(--ink);font-family:var(--body);line-height:1.5;-webkit-font-smoothing:antialiased;
+  background:
+    repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px),
+    radial-gradient(130% 90% at 50% -10%,var(--bg-2) 0%,var(--bg) 60%,#06100f 100%) fixed;}
+h1,h2,h3,.disp{font-family:var(--display);font-weight:700;letter-spacing:.02em;text-wrap:balance;}
+.wrap{max-width:1000px;margin:0 auto;padding-inline:18px;padding-block:22px;}
+.eyebrow{font-family:var(--mono);text-transform:uppercase;letter-spacing:.22em;font-size:11px;color:var(--orange);font-weight:400;}
+button{font-family:var(--display);letter-spacing:.04em;cursor:pointer;border:none;border-radius:2px;}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--orange);outline-offset:2px;}
+.btn{background:var(--orange);color:#1a0d02;padding:11px 20px;font-size:17px;text-transform:uppercase;font-weight:600;border:2px solid var(--orange-dark);box-shadow:2px 2px 0 var(--orange-dark);transition:transform .08s,box-shadow .08s;}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--orange-dark);}
+.btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--orange-dark);}
+.btn.teal{background:var(--teal);color:var(--bone);border-color:var(--teal-dark);box-shadow:2px 2px 0 var(--teal-dark);}
+.btn.teal:hover{box-shadow:3px 3px 0 var(--teal-dark);}.btn.teal:active{box-shadow:1px 1px 0 var(--teal-dark);}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--edge);box-shadow:2px 2px 0 rgba(0,0,0,.4);}
+.btn.ghost:hover{border-color:var(--orange);}
+.btn.red{background:var(--red);color:var(--bone);border-color:var(--red-deep);box-shadow:2px 2px 0 var(--red-deep);}
+.btn.ink{background:#05100f;color:var(--bone);border-color:#000;box-shadow:2px 2px 0 #000;}
+.btn.sm{padding:7px 13px;font-size:13px;}
+.btn:disabled{opacity:.34;cursor:not-allowed;transform:none;box-shadow:none;}
+input[type=text]{background:#061211;color:var(--ink);border:2px solid var(--edge);border-radius:2px;padding:9px 11px;font-family:var(--body);font-size:15px;width:100%;}
+input[type=text]:focus{border-color:var(--orange);outline:none;}
+.muted{color:var(--ink-soft);}
+.hidden{display:none!important;}
+
+/* masthead */
+.masthead{position:relative;text-align:center;padding:26px 16px 22px;margin-bottom:20px;overflow:hidden;border:3px solid var(--edge);background:linear-gradient(180deg,var(--panel-2),var(--panel));box-shadow:5px 5px 0 rgba(0,0,0,.5);}
+.masthead::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(244,122,31,.05) 0 10px,transparent 10px 20px);}
+.masthead::after{content:"CLASSIFIED";position:absolute;top:12px;right:-42px;transform:rotate(38deg);background:var(--red);color:var(--bone);font-family:var(--mono);font-size:12px;letter-spacing:.3em;padding:4px 54px;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.4);}
+.masthead>*{position:relative;z-index:1;}
+.masthead h1{font-size:clamp(44px,11vw,92px);margin:4px 0;line-height:.86;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);text-shadow:3px 3px 0 var(--teal-dark);}
+.masthead h1 .eye{color:var(--orange);}
+.masthead .sub{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-soft);}
+.rule{height:3px;background:var(--orange);max-width:180px;margin:10px auto;}
+
+.panel{background:var(--panel);border:3px solid var(--edge);box-shadow:5px 5px 0 rgba(0,0,0,.45);padding:20px;}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.spread{justify-content:space-between;}
+.names-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:16px 0;}
+.name-row{display:flex;gap:8px;align-items:center;}
+.name-row .idx{font-family:var(--mono);color:var(--orange);width:22px;text-align:right;font-size:14px;}
+.count-pills{display:flex;gap:7px;flex-wrap:wrap;}
+.count-pills button{background:#061211;color:var(--ink);border:2px solid var(--edge);padding:8px 15px;font-size:17px;font-family:var(--display);}
+.count-pills button[aria-pressed=true]{background:var(--orange);color:#1a0d02;border-color:var(--orange-dark);}
+.setline{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px dashed var(--edge);}
+.setlabel{font-family:var(--mono);text-transform:uppercase;letter-spacing:.14em;font-size:11px;color:var(--orange);}
+.toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--display);font-size:16px;text-transform:uppercase;letter-spacing:.03em;user-select:none;}
+.toggle .box{width:40px;height:22px;border:2px solid var(--edge);border-radius:12px;background:#061211;position:relative;transition:.15s;flex:none;}
+.toggle .box::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--ink-soft);transition:.15s;}
+.toggle.on .box{background:var(--teal);border-color:var(--teal-dark);}
+.toggle.on .box::after{left:20px;background:var(--bone);}
+.toggle.disabled{opacity:.4;cursor:not-allowed;}
+.stepper{display:inline-flex;align-items:center;gap:8px;}
+.stepper button{width:34px;height:34px;font-size:20px;background:#061211;color:var(--ink);border:2px solid var(--edge);}
+.stepper .val{font-family:var(--display);font-size:22px;min-width:92px;text-align:center;}
+
+/* reveal */
+.reveal-stage{min-height:54vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;}
+.reveal-card{background:var(--panel);border:3px solid var(--edge);box-shadow:6px 6px 0 rgba(0,0,0,.5);padding:26px 22px;max-width:480px;width:100%;position:relative;overflow:hidden;}
+.reveal-card::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(244,122,31,.04) 0 9px,transparent 9px 18px);pointer-events:none;}
+.reveal-card>*{position:relative;z-index:1;}
+.big-name{font-family:var(--display);font-size:30px;text-transform:uppercase;letter-spacing:.04em;}
+.loc-head{font-family:var(--mono);text-transform:uppercase;letter-spacing:.2em;font-size:11px;color:var(--ink-soft);}
+.loc-big{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:40px;line-height:1;color:var(--orange);margin:4px 0 2px;letter-spacing:.02em;}
+.role-line{font-family:var(--display);font-size:24px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink);}
+.spy-badge{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:46px;line-height:1;color:var(--red);text-shadow:2px 2px 0 var(--red-deep);}
+.redact{display:inline-block;background:#05100f;border:1px solid var(--edge);color:var(--ink-soft);font-family:var(--mono);font-size:12px;letter-spacing:.14em;padding:3px 10px;text-transform:uppercase;}
+.progress-dots{display:flex;gap:7px;justify-content:center;margin-top:8px;flex-wrap:wrap;}
+.dot{width:11px;height:11px;border-radius:50%;background:#05100f;border:1px solid var(--edge);}
+.dot.done{background:var(--orange);border-color:var(--orange-dark);}
+
+/* play */
+.timer-plate{position:relative;border:3px solid var(--edge);background:linear-gradient(180deg,var(--panel-2),var(--panel));box-shadow:5px 5px 0 rgba(0,0,0,.45);padding:16px 18px;margin-bottom:14px;text-align:center;overflow:hidden;}
+.timer-plate .tlabel{font-family:var(--mono);text-transform:uppercase;letter-spacing:.22em;font-size:11px;color:var(--orange);}
+.timer-plate .tdisp{font-family:var(--display);font-weight:700;font-size:clamp(56px,16vw,96px);line-height:.9;font-variant-numeric:tabular-nums;letter-spacing:.02em;margin:2px 0;}
+.timer-plate.low .tdisp{color:var(--orange);}
+.timer-plate.done{border-color:var(--red);}
+.timer-plate.done .tdisp{color:var(--red);}
+.timer-ctrls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px;}
+
+.firstbar{font-family:var(--mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);text-align:center;margin:0 0 12px;}
+.firstbar b{color:var(--orange);}
+
+.cols{display:grid;grid-template-columns:1fr;gap:14px;}
+@media(min-width:720px){.cols{grid-template-columns:1.3fr 1fr;align-items:start;}}
+
+.action{background:var(--panel);border:3px solid var(--edge);box-shadow:5px 5px 0 rgba(0,0,0,.45);padding:18px 20px;}
+.action h2{margin:0 0 4px;font-size:26px;text-transform:uppercase;}
+.action .lead{font-family:var(--mono);text-transform:uppercase;letter-spacing:.14em;font-size:12px;color:var(--orange);}
+.reminder{border-left:4px solid var(--orange);background:rgba(244,122,31,.08);padding:10px 14px;margin:12px 0;font-size:14px;}
+.reminder b{color:var(--orange);}
+.actbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+
+.seats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 2px;}
+.seat{font-family:var(--mono);font-size:13px;padding:8px 12px;border:2px solid var(--edge);background:#061211;min-width:68px;text-align:center;}
+.seat.first{border-color:var(--orange);color:var(--orange);}
+.seat.pick{cursor:pointer;}
+.seat.pick:hover{background:var(--orange);color:#1a0d02;border-color:var(--orange-dark);}
+.seat.chosen{background:var(--orange);color:#1a0d02;border-color:var(--orange-dark);}
+.seat.disabled{opacity:.4;}
+
+.reflist{background:var(--panel);border:3px solid var(--edge);box-shadow:5px 5px 0 rgba(0,0,0,.45);}
+.reflist .rh{font-family:var(--mono);text-transform:uppercase;letter-spacing:.16em;font-size:11px;color:var(--orange);padding:12px 14px 8px;border-bottom:2px solid var(--edge);display:flex;justify-content:space-between;align-items:center;}
+.loc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px 10px;padding:10px 14px 14px;}
+.loc-grid div{font-size:13px;padding:3px 0;border-bottom:1px dotted rgba(42,74,76,.6);font-family:var(--body);}
+.loc-grid.pick div{cursor:pointer;padding:6px 8px;border:2px solid transparent;}
+.loc-grid.pick div:hover{border-color:var(--orange);background:rgba(244,122,31,.1);}
+
+/* vote */
+.vote-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;margin:12px 0;}
+.voter{border:2px solid var(--edge);background:#061211;padding:8px 10px;display:flex;flex-direction:column;gap:7px;}
+.voter .vn{font-family:var(--mono);font-size:13px;}
+.voter .vb{display:flex;gap:6px;}
+.voter .vb button{flex:1;padding:6px 0;font-size:13px;border:2px solid var(--edge);background:var(--panel-2);color:var(--ink);}
+.voter .vb button.yes[aria-pressed=true]{background:var(--teal);color:#fff;border-color:var(--teal-dark);}
+.voter .vb button.no[aria-pressed=true]{background:var(--red);color:#fff;border-color:var(--red-deep);}
+.tally{font-family:var(--display);font-size:20px;text-transform:uppercase;margin-top:4px;}
+
+/* end */
+.endwrap{text-align:center;}
+.verdict{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:clamp(34px,9vw,60px);line-height:.95;letter-spacing:.03em;}
+.verdict.spy{color:var(--red);text-shadow:3px 3px 0 var(--red-deep);}
+.verdict.nonspy{color:var(--orange);text-shadow:3px 3px 0 var(--orange-dark);}
+.reveal-rows{max-width:520px;margin:18px auto;text-align:left;}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:8px 2px;border-bottom:1px dashed var(--edge);}
+.rrow .who{font-family:var(--body);}
+.rrow .what{font-family:var(--display);text-transform:uppercase;letter-spacing:.03em;}
+.rrow.isspy .what{color:var(--red);}
+.rrow.isspy .who{color:var(--red);font-weight:600;}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(3,10,9,.8);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50;overflow:auto;}
+.modal{background:var(--panel);border:3px solid var(--edge);max-width:560px;width:100%;box-shadow:8px 8px 0 rgba(0,0,0,.5);overflow:hidden;margin:auto;}
+.modal .mhead{padding:18px 22px;border-bottom:3px solid var(--edge);color:var(--bone);position:relative;overflow:hidden;background:var(--teal);}
+.modal .mhead.orange{background:var(--orange);color:#1a0d02;}
+.modal .mhead.red{background:var(--red);}
+.modal .mhead.ink{background:#05100f;}
+.modal .mhead::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(0,0,0,.08) 0 9px,transparent 9px 18px);}
+.modal .mhead>*{position:relative;}
+.modal .mhead h2{margin:0;font-size:26px;text-transform:uppercase;font-weight:700;}
+.modal .mhead .ek{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.9;}
+.modal .mbody{padding:20px 22px;max-height:66vh;overflow:auto;}
+.modal .mbody p{margin:0 0 12px;}
+.loop{display:grid;gap:10px;margin:8px 0 4px;}
+.loopstep{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--edge);padding:10px 12px;background:#061211;}
+.loopstep .ln{font-family:var(--display);font-weight:700;font-size:22px;color:var(--orange);line-height:1;width:26px;flex:none;}
+.loopstep .lt b{font-family:var(--display);text-transform:uppercase;letter-spacing:.03em;color:var(--ink);}
+.modal .mfoot{padding:14px 22px 20px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+details{border:2px solid var(--edge);background:#061211;padding:10px 14px;margin-top:12px;}
+summary{cursor:pointer;font-family:var(--display);text-transform:uppercase;letter-spacing:.04em;}
+.footer-note{color:var(--ink-dim);font-size:12px;text-align:center;margin-top:24px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;}
+@media(max-width:560px){.action h2{font-size:21px;}.loc-grid{grid-template-columns:1fr;}}
+</style>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="sub">A social deduction game · 3 to 8 agents</div>
+    <h1>SPY<span class="eye">FALL</span></h1>
+    <div class="rule"></div>
+    <div class="sub">One shared screen deals the dossier · no phones</div>
+  </div>
+
+  <!-- SETUP -->
+  <section id="setup">
+    <div class="panel">
+      <div class="eyebrow">Step 1 — Who is at the table? (seat them in this order)</div>
+      <div class="row spread" style="margin-top:8px">
+        <div class="count-pills" id="countPills"></div>
+        <button class="btn ghost sm" id="clearNames">Clear names</button>
+      </div>
+      <div class="names-grid" id="namesGrid"></div>
+
+      <div class="setline">
+        <span class="setlabel">Spies</span>
+        <div class="toggle" id="twoSpyToggle"><span class="box"></span><span class="lbl">Two spies</span></div>
+        <span class="muted" id="spyHint" style="font-size:12px">Second spy is available with 7–8 players.</span>
+      </div>
+      <div class="setline">
+        <span class="setlabel">Round timer</span>
+        <div class="stepper">
+          <button id="tMinus" aria-label="Less time">–</button>
+          <span class="val" id="tVal">8:00</span>
+          <button id="tPlus" aria-label="More time">+</button>
+        </div>
+        <span class="muted" style="font-size:12px">Classic rounds run about 8 minutes.</span>
+      </div>
+
+      <div class="row" style="margin-top:18px">
+        <button class="btn" id="dealBtn">Deal the secret dossier →</button>
+        <button class="btn ghost sm" id="howBtn">How to play</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVEAL -->
+  <section id="reveal" class="hidden">
+    <div class="reveal-stage">
+      <div id="revealGate">
+        <div class="eyebrow">Step 2 — Secret briefing</div>
+        <h2 style="font-size:28px;margin:10px 0">Pass the laptop around the table</h2>
+        <p class="muted" style="max-width:470px">Each agent taps their own name, reads their briefing alone, then hides it and passes on. Do not peek at anyone else&rsquo;s. One of you is the spy and will not be told the location.</p>
+        <div class="progress-dots" id="revealDots"></div>
+        <div id="revealButtons" class="names-grid" style="margin-top:18px"></div>
+        <button class="btn hidden" id="toPlayBtn" style="margin-top:14px">Everyone is briefed — start the round →</button>
+      </div>
+      <div id="revealOne" class="reveal-card hidden">
+        <div class="eyebrow" id="roPrompt">Tap to reveal</div>
+        <div class="big-name" id="roName"></div>
+        <div id="roReveal" class="hidden" style="margin-top:14px"></div>
+        <div style="margin-top:20px" class="row" id="roBtns"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section id="play" class="hidden">
+    <div class="row spread" style="margin-bottom:10px">
+      <div class="eyebrow">Round in progress · ask, listen, deduce</div>
+      <div class="toolbar">
+        <button class="btn ghost sm" id="howBtn2">How to play</button>
+        <button class="btn ghost sm" id="newGame2">New game</button>
+      </div>
+    </div>
+
+    <div class="timer-plate" id="timerPlate">
+      <div class="tlabel">Time remaining</div>
+      <div class="tdisp" id="timerDisplay">8:00</div>
+      <div class="timer-ctrls">
+        <button class="btn sm" id="tStart">Start</button>
+        <button class="btn ghost sm" id="tAdd">+1 min</button>
+        <button class="btn ghost sm" id="tReset">Reset</button>
+      </div>
+    </div>
+    <div class="firstbar" id="firstBar"></div>
+
+    <div class="cols">
+      <div>
+        <div class="action" id="actionPanel"></div>
+      </div>
+      <div class="reflist">
+        <div class="rh"><span>Possible locations</span><span class="muted" style="letter-spacing:0;text-transform:none">the spy is guessing from this list</span></div>
+        <div class="loc-grid" id="locGrid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- END -->
+  <section id="end" class="hidden">
+    <div class="action endwrap" id="endPanel"></div>
+    <div class="row" style="margin-top:16px;justify-content:center">
+      <button class="btn" id="againBtn">Deal another round (same players)</button>
+      <button class="btn ghost sm" id="newGame3">New game</button>
+    </div>
+  </section>
+
+  <div class="footer-note">Fan-made digital dossier · for your own game nights</div>
+</div>
+<div id="modalMount"></div>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Share+Tech+Mono&family=Barlow:ital,wght@0,400;0,600;1,400&display=swap">
+
+<script>
+"use strict";
+const el=id=>document.getElementById(id);
+
+/* ============ LOCATIONS (classic Spyfall deck) ============ */
+const LOCATIONS=[
+  {n:"Airplane",r:["First Class Passenger","Flight Attendant","Co-Pilot","Captain","Mechanic","Economy Passenger","Air Marshal"]},
+  {n:"Bank",r:["Armored Car Driver","Manager","Consultant","Robber","Security Guard","Teller","Customer"]},
+  {n:"Beach",r:["Beach Waitress","Kite Surfer","Lifeguard","Thief","Photographer","Ice Cream Vendor","Beach Goer"]},
+  {n:"Casino",r:["Bartender","Head of Security","Bouncer","Manager","Hustler","Dealer","Gambler"]},
+  {n:"Cathedral",r:["Priest","Beggar","Sinner","Tourist","Sexton","Choir Singer","Parishioner"]},
+  {n:"Circus Tent",r:["Acrobat","Animal Trainer","Magician","Fire Eater","Clown","Juggler","Visitor"]},
+  {n:"Corporate Party",r:["Entertainer","Manager","Uninvited Guest","Owner","Secretary","Accountant","Delivery Person"]},
+  {n:"Day Spa",r:["Stylist","Manicurist","Masseur","Dermatologist","Beautician","Customer","Makeup Artist"]},
+  {n:"Embassy",r:["Security Guard","Secretary","Ambassador","Tourist","Refugee","Diplomat","Government Official"]},
+  {n:"Hospital",r:["Nurse","Doctor","Anesthesiologist","Intern","Patient","Therapist","Surgeon"]},
+  {n:"Hotel",r:["Doorman","Security Guard","Manager","Housekeeper","Bartender","Bellhop","Guest"]},
+  {n:"Military Base",r:["Deserter","Colonel","Medic","Soldier","Sniper","Officer","Tank Engineer"]},
+  {n:"Movie Studio",r:["Stuntman","Sound Engineer","Cameraman","Director","Costume Artist","Producer","Actor"]},
+  {n:"Ocean Liner",r:["Head Cook","Captain","Bartender","Musician","Waiter","Mechanic","Rich Passenger"]},
+  {n:"Passenger Train",r:["Mechanic","Border Officer","Attendant","Restaurant Chef","Train Driver","Stoker","Passenger"]},
+  {n:"Pirate Ship",r:["Cook","Sailor","Prisoner","Cannon Operator","First Mate","Captain","Powder Monkey"]},
+  {n:"Police Station",r:["Detective","Lawyer","Journalist","Criminalist","Patrol Officer","Criminal","Archivist"]},
+  {n:"Polar Station",r:["Medic","Geologist","Expedition Leader","Biologist","Radio Operator","Hydrologist","Meteorologist"]},
+  {n:"Restaurant",r:["Musician","Bouncer","Hostess","Head Chef","Food Critic","Waiter","Customer"]},
+  {n:"School",r:["Gym Teacher","Student","Principal","Security Guard","Janitor","Cafeteria Worker","Maintenance Worker"]},
+  {n:"Service Station",r:["Manager","Tire Specialist","Biker","Car Owner","Car Wash Operator","Electrician","Auto Mechanic"]},
+  {n:"Space Station",r:["Engineer","Alien","Pilot","Commander","Scientist","Doctor","Space Tourist"]},
+  {n:"Submarine",r:["Cook","Commander","Sonar Technician","Electronics Technician","Sailor","Radioman","Navigator"]},
+  {n:"Supermarket",r:["Customer","Cashier","Butcher","Janitor","Security Guard","Sample Demonstrator","Shelf Stocker"]},
+  {n:"Theater",r:["Coat Check Clerk","Prompter","Cosmetician","Director","Actor","Crew Member","Audience Member"]},
+  {n:"University",r:["Graduate Student","Professor","Dean","Psychologist","Maintenance Worker","Student","Janitor"]}
+];
+
+/* ============ STATE ============ */
+let S=null;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function freshState(count,names,twoSpies,timerSec){
+  const locIdx=Math.floor(Math.random()*LOCATIONS.length);
+  const loc=LOCATIONS[locIdx];
+  const spyCount=twoSpies?2:1;
+  // assign: spyCount spies, rest get distinct roles at the location
+  const slots=names.map((_,i)=>i);
+  const spies=shuffle(slots).slice(0,spyCount);
+  const roleOrder=shuffle(loc.r);
+  const isSpy=names.map((_,i)=>spies.includes(i));
+  const roles=[];let rp=0;
+  for(let i=0;i<names.length;i++){roles.push(isSpy[i]?null:roleOrder[rp++%roleOrder.length]);}
+  return {
+    v:1,phase:'reveal',count,names:names.slice(),
+    twoSpies:spyCount===2,timerSec,
+    locIdx,isSpy,roles,
+    seen:names.map(()=>false),
+    firstAsker:Math.floor(Math.random()*names.length),
+    playStep:'idle',
+    accused:null,votes:{},
+    result:null
+  };
+}
+
+/* ============ SETUP SCREEN ============ */
+let selCount=5, selTwoSpies=false, selTimer=480;
+function clampTimer(s){return Math.max(180,Math.min(900,s));}
+function renderCountPills(){const h=el('countPills');h.innerHTML='';[3,4,5,6,7,8].forEach(n=>{const b=document.createElement('button');b.textContent=n;b.setAttribute('aria-pressed',n===selCount);b.onclick=()=>{selCount=n;if(selCount<7)selTwoSpies=false;renderCountPills();renderTwoSpy();renderNameInputs();};h.appendChild(b);});}
+function renderTwoSpy(){const t=el('twoSpyToggle');const allowed=selCount>=7;t.classList.toggle('disabled',!allowed);t.classList.toggle('on',allowed&&selTwoSpies);el('spyHint').textContent=allowed?(selTwoSpies?'This round has two spies.':'Toggle on for two spies.'):'Second spy is available with 7–8 players.';}
+el('twoSpyToggle').onclick=()=>{if(selCount<7)return;selTwoSpies=!selTwoSpies;renderTwoSpy();};
+function fmtMS(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function renderTimerPick(){el('tVal').textContent=fmtMS(selTimer);}
+el('tMinus').onclick=()=>{selTimer=clampTimer(selTimer-60);renderTimerPick();};
+el('tPlus').onclick=()=>{selTimer=clampTimer(selTimer+60);renderTimerPick();};
+function renderNameInputs(){const g=el('namesGrid');const prev=[...g.querySelectorAll('input')].map(i=>i.value);g.innerHTML='';for(let i=0;i<selCount;i++){const row=document.createElement('div');row.className='name-row';row.innerHTML=`<span class="idx">${i+1}</span>`;const inp=document.createElement('input');inp.type='text';inp.placeholder='Agent '+(i+1);inp.value=prev[i]||'';inp.id='nm'+i;inp.autocomplete='off';row.appendChild(inp);g.appendChild(row);}}
+el('clearNames').onclick=()=>document.querySelectorAll('#namesGrid input').forEach(i=>i.value='');
+el('howBtn').onclick=()=>showHowModal();
+el('howBtn2').onclick=()=>showHowModal();
+
+function dealRoles(){
+  const names=[];for(let i=0;i<selCount;i++){const v=el('nm'+i).value.trim();names.push(v||('Agent '+(i+1)));}
+  S=freshState(selCount,names,selCount>=7&&selTwoSpies,selTimer);
+  save();showPhase();
+}
+el('dealBtn').onclick=dealRoles;
+
+/* ============ REVEAL ============ */
+function renderRevealGate(){
+  const d=el('revealDots');d.innerHTML='';S.seen.forEach(done=>{const x=document.createElement('div');x.className='dot'+(done?' done':'');d.appendChild(x);});
+  const b=el('revealButtons');b.innerHTML='';
+  S.names.forEach((nm,i)=>{const btn=document.createElement('button');btn.className='btn '+(S.seen[i]?'ghost':'teal');btn.textContent=(S.seen[i]?'✓ ':'')+nm;btn.disabled=S.seen[i];btn.onclick=()=>openReveal(i);b.appendChild(btn);});
+  el('toPlayBtn').classList.toggle('hidden',!S.seen.every(Boolean));
+}
+function openReveal(i){
+  el('revealGate').classList.add('hidden');
+  const c=el('revealOne');c.classList.remove('hidden');
+  el('roName').textContent=S.names[i];
+  el('roPrompt').textContent='Make sure nobody else is looking';
+  el('roReveal').classList.add('hidden');el('roReveal').innerHTML='';
+  const btns=el('roBtns');btns.innerHTML='';
+  const show=document.createElement('button');show.className='btn';show.textContent='Reveal my briefing';show.onclick=()=>doReveal(i);btns.appendChild(show);
+}
+function doReveal(i){
+  const rv=el('roReveal');rv.classList.remove('hidden');
+  el('roPrompt').textContent='Your secret briefing';
+  if(S.isSpy[i]){
+    rv.innerHTML=`<div class="spy-badge">You are the Spy</div>
+      <p class="muted" style="margin:14px 0 0">You do <b>not</b> know the location. Ask and answer to blend in, work out where you are, and avoid being caught.</p>
+      <div style="margin-top:10px"><span class="redact">Location ████████ redacted</span></div>`;
+  }else{
+    const loc=LOCATIONS[S.locIdx];
+    rv.innerHTML=`<div class="loc-head">Location</div><div class="loc-big">${loc.n}</div>
+      <div class="loc-head" style="margin-top:10px">Your role</div><div class="role-line">${S.roles[i]}</div>
+      <p class="muted" style="margin:14px 0 0">Everyone here except the spy shares this location. Never say the location out loud — the spy is listening.</p>`;
+  }
+  const btns=el('roBtns');btns.innerHTML='';
+  const done=document.createElement('button');done.className='btn teal';done.textContent='Hide & pass on';
+  done.onclick=()=>{S.seen[i]=true;save();el('revealOne').classList.add('hidden');el('revealGate').classList.remove('hidden');renderRevealGate();};
+  btns.appendChild(done);
+}
+el('toPlayBtn').onclick=()=>{S.phase='play';S.playStep='idle';save();showPhase();if(!S.introSeen){S.introSeen=true;save();}};
+
+/* ============ PLAY ============ */
+function renderLocList(pickFn){
+  const g=el('locGrid');g.innerHTML='';g.classList.toggle('pick',!!pickFn);
+  LOCATIONS.forEach((l,idx)=>{const d=document.createElement('div');d.textContent=l.n;if(pickFn)d.onclick=()=>pickFn(idx);g.appendChild(d);});
+}
+function renderFirst(){
+  el('firstBar').innerHTML=S.playStep==='idle'||S.playStep==='timeup'
+    ? `First question goes to <b>${S.names[S.firstAsker]}</b> · then ask anyone you like`
+    : '';
+}
+function renderPlay(){
+  renderFirst();
+  const ap=el('actionPanel');ap.innerHTML='';
+  switch(S.playStep){
+    case 'idle':{
+      ap.innerHTML=`<div class="lead">The interrogation</div><h2>Ask questions. Expose the spy.</h2>`+
+        `<div class="reminder">Take turns asking each other questions about the location. Non-spies: prove you belong without naming the place. Spy: blend in and figure out where you are.</div>`+
+        `<div class="actbtns"></div>`;
+      const bar=ap.querySelector('.actbtns');
+      bar.appendChild(mkbtn('Call a vote to accuse','red',()=>{S.playStep='accuse-pick';S.accused=null;S.votes={};save();renderPlay();}));
+      bar.appendChild(mkbtn('Spy stops & guesses location','ghost',()=>{S.playStep='spy-guess';save();renderPlay();}));
+      renderLocList(null);
+      break;
+    }
+    case 'accuse-pick':case 'timeup-pick':{
+      const timeup=S.playStep==='timeup-pick';
+      ap.innerHTML=`<div class="lead">${timeup?'Time is up':'Accusation'}</div><h2>${timeup?'The table must name a suspect':'Who is being accused?'}</h2>`+
+        `<div class="reminder">${timeup?'When time runs out the table votes together on one suspect.':'Any agent may call a vote. Pick who is being accused — then <b>every other agent</b> must agree for the reveal.'}</div>`;
+      const seats=document.createElement('div');seats.className='seats';
+      S.names.forEach((nm,i)=>{const s=document.createElement('div');s.className='seat pick';s.textContent=nm;s.onclick=()=>{S.accused=i;S.votes={};S.playStep=timeup?'timeup-vote':'accuse-vote';save();renderPlay();};seats.appendChild(s);});
+      ap.appendChild(seats);
+      const bar=document.createElement('div');bar.className='actbtns';
+      if(!timeup)bar.appendChild(mkbtn('Cancel','ghost',()=>{S.playStep='idle';save();renderPlay();}));
+      ap.appendChild(bar);
+      renderLocList(null);
+      break;
+    }
+    case 'accuse-vote':case 'timeup-vote':{
+      const timeup=S.playStep==='timeup-vote';
+      const acc=S.accused;
+      ap.innerHTML=`<div class="lead">${timeup?'Final vote':'Vote on the accusation'}</div><h2>Accused: ${S.names[acc]}</h2>`+
+        `<div class="reminder">${timeup?'Does the table agree this is the spy? Everyone except the accused votes.':'For the reveal, <b>all other agents must agree</b>. If even one disagrees, the round continues.'}</div>`;
+      const grid=document.createElement('div');grid.className='vote-grid';
+      S.names.forEach((nm,i)=>{if(i===acc)return;const v=document.createElement('div');v.className='voter';const val=S.votes[i];
+        v.innerHTML=`<div class="vn">${nm}</div>`;
+        const vb=document.createElement('div');vb.className='vb';
+        const y=document.createElement('button');y.className='yes';y.textContent='Agree';y.setAttribute('aria-pressed',val===true);y.onclick=()=>{S.votes[i]=true;save();renderPlay();};
+        const n=document.createElement('button');n.className='no';n.textContent='No';n.setAttribute('aria-pressed',val===false);n.onclick=()=>{S.votes[i]=false;save();renderPlay();};
+        vb.appendChild(y);vb.appendChild(n);v.appendChild(vb);grid.appendChild(v);
+      });
+      ap.appendChild(grid);
+      const voters=S.names.map((_,i)=>i).filter(i=>i!==acc);
+      const allIn=voters.every(i=>S.votes[i]!==undefined);
+      const yes=voters.filter(i=>S.votes[i]===true).length;
+      const info=document.createElement('div');info.className='tally';
+      info.textContent=timeup?`Agree ${yes} · No ${voters.filter(i=>S.votes[i]===false).length} · majority rules`
+                             :`Agree ${yes} / ${voters.length} · all must agree`;
+      ap.appendChild(info);
+      const bar=document.createElement('div');bar.className='actbtns';
+      bar.appendChild(mkbtn('Resolve the vote','',()=>{
+        const unanimous=voters.every(i=>S.votes[i]===true);
+        const majority=yes*2>voters.length;
+        const passes=timeup?majority:unanimous;
+        if(!passes){
+          if(timeup){
+            // deadlocked timeout: no one accused successfully -> spy wins
+            finishRound(spyWinsSide(),`Time ran out and the table could not agree on the spy.`);
+          }else{
+            modalShell('ink','Vote failed','The accusation did not stick',
+              `<p>The table was not unanimous, so no one is revealed and the round continues.</p><p class="muted">Keep asking questions, or try again later.</p>`,
+              btnHTML('','Back to the round','closeModal();backToIdle()'));
+          }
+          return;
+        }
+        resolveAccusation(acc);
+      },!allIn));
+      if(!timeup)bar.appendChild(mkbtn('Cancel','ghost',()=>{S.playStep='idle';save();renderPlay();}));
+      ap.appendChild(bar);
+      renderLocList(null);
+      break;
+    }
+    case 'spy-guess':{
+      ap.innerHTML=`<div class="lead">The spy breaks cover</div><h2>Spy, name the location</h2>`+
+        `<div class="reminder">A spy may stop the round at any time to guess where everyone is. <b>Right — the spy wins. Wrong — the non-spies win.</b> Pick from the list on the right.</div>`;
+      const bar=document.createElement('div');bar.className='actbtns';
+      bar.appendChild(mkbtn('Cancel','ghost',()=>{S.playStep='idle';save();renderPlay();}));
+      ap.appendChild(bar);
+      renderLocList(idx=>resolveSpyGuess(idx));
+      break;
+    }
+  }
+}
+function mkbtn(label,cls,fn,dis){const b=document.createElement('button');b.className='btn '+(cls||'');b.textContent=label;if(dis)b.disabled=true;else b.onclick=fn;return b;}
+function backToIdle(){S.playStep='idle';save();renderPlay();}
+function spyWinsSide(){return 'spy';}
+
+function resolveAccusation(i){
+  if(S.isSpy[i]){
+    finishRound('nonspy',`${S.names[i]} was accused — and was the spy. The spy is caught.`,{accused:i});
+  }else{
+    finishRound('spy',`${S.names[i]} was accused — but was not the spy. A wrong accusation hands the round to the spy.`,{accused:i});
+  }
+}
+function resolveSpyGuess(idx){
+  const right=idx===S.locIdx;
+  if(right)finishRound('spy',`The spy guessed ${LOCATIONS[idx].n} — correct. The spy wins.`,{guess:idx});
+  else finishRound('nonspy',`The spy guessed ${LOCATIONS[idx].n} — wrong. The location was ${LOCATIONS[S.locIdx].n}. The non-spies win.`,{guess:idx});
+}
+function finishRound(winner,reason,extra){
+  closeModal();timerStop();
+  S.result=Object.assign({winner,reason},extra||{});
+  S.phase='end';save();showPhase();
+}
+
+/* ============ END ============ */
+function renderEnd(){
+  const r=S.result;const loc=LOCATIONS[S.locIdx];
+  const spies=S.names.filter((_,i)=>S.isSpy[i]);
+  const host=el('endPanel');
+  host.innerHTML=`<div class="lead">Round over</div>
+    <div class="verdict ${r.winner==='spy'?'spy':'nonspy'}">${r.winner==='spy'?(S.twoSpies?'The spies win':'The spy wins'):'The non-spies win'}</div>
+    <p style="max-width:520px;margin:14px auto 0">${r.reason}</p>
+    <p class="muted" style="margin-top:6px">The location was <b style="color:var(--orange)">${loc.n}</b>. The ${spies.length>1?'spies were':'spy was'} <b style="color:var(--red)">${spies.join(' & ')}</b>.</p>
+    <div class="reveal-rows" id="revealRows"></div>`;
+  const rows=el('revealRows');
+  S.names.forEach((nm,i)=>{const d=document.createElement('div');d.className='rrow'+(S.isSpy[i]?' isspy':'');
+    d.innerHTML=`<span class="who">${nm}</span><span class="what">${S.isSpy[i]?'Spy':S.roles[i]}</span>`;rows.appendChild(d);});
+}
+el('againBtn').onclick=()=>{S=freshState(S.count,S.names,S.twoSpies,S.timerSec);save();showPhase();};
+function newGame(){S=null;try{localStorage.removeItem(KEY);}catch(e){}timerStop();showPhase();}
+el('newGame2').onclick=newGame;el('newGame3').onclick=newGame;
+
+/* ============ TIMER (round clock) ============ */
+let TMR={remaining:480,running:false,id:null};
+function fmtT(s){s=Math.max(0,s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function timerRender(){const d=el('timerDisplay');if(!d)return;const plate=el('timerPlate');d.textContent=fmtT(TMR.remaining);el('tStart').textContent=TMR.running?'Pause':(TMR.remaining<=0?'Done':'Start');plate.classList.toggle('low',TMR.running&&TMR.remaining<=30&&TMR.remaining>0);plate.classList.toggle('done',TMR.remaining<=0);}
+function timerTick(){TMR.remaining--;if(TMR.remaining<=0){TMR.remaining=0;timerStop();onTimeUp();}timerRender();}
+function timerStart(){if(TMR.remaining<=0)return;TMR.running=true;clearInterval(TMR.id);TMR.id=setInterval(timerTick,1000);timerRender();}
+function timerStop(){TMR.running=false;clearInterval(TMR.id);TMR.id=null;timerRender();}
+function onTimeUp(){
+  if(!S||S.phase!=='play')return;
+  if(S.playStep==='spy-guess')return; // let an in-progress spy guess resolve
+  S.playStep='timeup-pick';save();renderPlay();
+  modalShell('red','Time is up','The clock has run out',
+    `<p>With time gone, the table must settle on one suspect and vote. Identify the spy and the non-spies win; miss, and the spy escapes.</p>`,
+    btnHTML('','Name a suspect','closeModal()'));
+}
+el('tStart').onclick=()=>{TMR.running?timerStop():timerStart();};
+el('tAdd').onclick=()=>{TMR.remaining+=60;timerRender();};
+el('tReset').onclick=()=>{timerStop();TMR.remaining=S?S.timerSec:selTimer;timerRender();};
+
+/* ============ MODALS ============ */
+function mount(h){el('modalMount').innerHTML=h;}
+function closeModal(){el('modalMount').innerHTML='';}
+function btnHTML(cls,label,call){return `<button class="btn ${cls}" onclick="${call}">${label}</button>`;}
+function modalShell(head,eyebrow,title,body,foot){mount(`<div class="scrim"><div class="modal"><div class="mhead ${head}"><div class="ek">${eyebrow}</div><h2>${title}</h2></div><div class="mbody">${body}</div><div class="mfoot">${foot}</div></div></div>`);}
+function showHowModal(){
+  const body=`
+  <div class="loop">
+    <div class="loopstep"><div class="ln">1</div><div class="lt"><b>Briefing.</b> The laptop deals one shared <b>location</b> and a unique <b>role</b> to everyone but the spy. The spy is told only that they are the spy and does not know the location. Pass the laptop so each agent reads their own briefing in private.</div></div>
+    <div class="loopstep"><div class="ln">2</div><div class="lt"><b>Interrogation.</b> Start the timer. Agents take turns asking each other questions about the place. Answer so you sound like you belong — but never say the location out loud, or the spy learns it. The spy bluffs along and listens for clues.</div></div>
+    <div class="loopstep"><div class="ln">3</div><div class="lt"><b>End the round.</b> Any agent may <b>call a vote</b> to accuse someone; if <b>all</b> others agree, that person is revealed. The <b>spy</b> may stop and <b>guess the location</b> at any time. When the <b>timer runs out</b>, the table votes on one suspect.</div></div>
+  </div>
+  <p class="muted">Non-spies win by catching the spy, or when the spy guesses the location wrong. The spy wins by guessing the location right, by surviving a wrong accusation, or by running out the clock uncaught.</p>
+  <p class="muted"><b>Golden rule:</b> never tell the spy the location — not even by accident.</p>`;
+  modalShell('orange','How to play','A round, start to finish',body,btnHTML('','Got it','closeModal()'));
+}
+
+/* ============ PHASE / BOOT ============ */
+function showPhase(){
+  const phase=S?S.phase:'setup';
+  el('setup').classList.toggle('hidden',phase!=='setup');
+  el('reveal').classList.toggle('hidden',phase!=='reveal');
+  el('play').classList.toggle('hidden',phase!=='play');
+  el('end').classList.toggle('hidden',phase!=='end');
+  if(phase==='setup'){renderCountPills();renderTwoSpy();renderTimerPick();renderNameInputs();}
+  if(phase==='reveal')renderRevealGate();
+  if(phase==='play'){TMR.remaining=(TMR.remaining>0&&TMR.remaining<=S.timerSec)?TMR.remaining:S.timerSec;timerRender();renderPlay();}
+  if(phase==='end')renderEnd();
+}
+
+/* ============ persistence ============ */
+const KEY='spyfall-v1';
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function load(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+function boot(initial){
+  S=(initial&&initial.S)?initial.S:load();
+  if(S&&S.phase){selCount=S.count;selTwoSpies=!!S.twoSpies;selTimer=S.timerSec||480;TMR.remaining=S.timerSec||480;showPhase();}
+  else{S=null;showPhase();}
+}
+if(window.claude&&window.claude.hot){window.claude.hot.snapshot(()=>({S}));window.claude.hot.ready?window.claude.hot.ready(d=>boot(d)):boot(window.claude.hot.data||{});}else boot({});
+</script>
