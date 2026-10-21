@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Board Games</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Spectral:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#14100c; --panel:#1f1a14; --line:#3c3225; --fg:#ece4d4; --muted:#a8977a;
+  --gold:#d99a2b;
+  --display:"Oswald","Arial Narrow",system-ui,sans-serif;
+  --body:"Spectral",Georgia,serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;background:radial-gradient(130% 100% at 50% 0%,#231c14,var(--bg) 60%) fixed;color:var(--fg);font-family:var(--body);-webkit-font-smoothing:antialiased;}
+.wrap{max-width:860px;margin:0 auto;padding-inline:20px;padding-block:48px;}
+h1{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:clamp(36px,8vw,60px);margin:0;line-height:.95;text-wrap:balance;}
+.sub{font-family:var(--display);text-transform:uppercase;letter-spacing:.28em;font-size:12px;color:var(--muted);margin-top:8px;}
+.rule{height:3px;background:var(--gold);width:72px;margin:18px 0 32px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;}
+a.card{display:flex;flex-direction:column;gap:6px;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:20px 20px 18px;transition:transform .1s,border-color .1s;}
+a.card:hover{transform:translateY(-3px);border-color:var(--gold);}
+a.card:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+.card .nm{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.03em;font-size:22px;}
+.card .pc{font-family:var(--display);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);}
+.card .desc{color:var(--muted);font-size:14.5px;line-height:1.45;}
+.card .play{margin-top:8px;font-family:var(--display);text-transform:uppercase;letter-spacing:.08em;font-size:13px;color:var(--fg);}
+.card .play::after{content:" →";color:var(--gold);}
+.foot{color:var(--muted);font-size:12.5px;font-family:var(--display);letter-spacing:.12em;text-transform:uppercase;margin-top:34px;text-align:center;}
+.foot a{color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="sub">Hidden-role night · one shared screen · no phones</div>
+  <h1>Board Games</h1>
+  <div class="rule"></div>
+  <div class="grid">
+    <a class="card" href="secret-hitler.html">
+      <span class="pc">5–10 players</span>
+      <span class="nm">Secret Hitler</span>
+      <span class="desc">Hidden fascists try to pass policies and slip Hitler into power.</span>
+      <span class="play">Play</span>
+    </a>
+    <a class="card" href="avalon.html">
+      <span class="pc">5–10 players</span>
+      <span class="nm">Avalon</span>
+      <span class="desc">Good knights run secret quests while hidden evil sabotages them.</span>
+      <span class="play">Play</span>
+    </a>
+    <a class="card" href="one-night-werewolf.html">
+      <span class="pc">3–10 players</span>
+      <span class="nm">One Night Werewolf</span>
+      <span class="desc">One night of role-swapping, then one vote to catch a werewolf.</span>
+      <span class="play">Play</span>
+    </a>
+    <a class="card" href="spyfall.html">
+      <span class="pc">3–8 players</span>
+      <span class="nm">Spyfall</span>
+      <span class="desc">Everyone shares a secret location except one spy bluffing to blend in.</span>
+      <span class="play">Play</span>
+    </a>
+  </div>
+  <div class="foot"><a href="https://github.com/03shraddha/board-games">source on github</a></div>
+</div>
+</body>
+</html>
